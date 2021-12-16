@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/cyverse-de/echo-middleware/redoc"
 	"github.com/cyverse/QMS/internal/controllers"
 	"github.com/cyverse/QMS/internal/log"
 	"github.com/labstack/echo"
@@ -17,7 +18,7 @@ func InitRouter() *echo.Echo {
 	// Add middleware.
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
+	e.Use(redoc.Serve(redoc.Opts{Title: "DE Administrative Requests API Documentation"}))
 	return e
 }
 
