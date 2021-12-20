@@ -1,11 +1,15 @@
 package server
 
 import (
+	"encoding/json"
+	"os"
+
 	"github.com/cyverse-de/echo-middleware/redoc"
 	"github.com/cyverse/QMS/internal/controllers"
 	"github.com/cyverse/QMS/internal/log"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/pkg/errors"
 )
 
 func InitRouter() *echo.Echo {
@@ -19,9 +23,43 @@ func InitRouter() *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(redoc.Serve(redoc.Opts{Title: "DE Administrative Requests API Documentation"}))
+	e.Logger.Info("loading service information")
+	serviceInfo, err := getSwaggerServiceInfo()
+	if err != nil {
+		e.Logger.Fatal(err, serviceInfo)
+	}
 	return e
 }
 
+type SwaggerServiceInfo struct {
+	Description string `json:"description"`
+	Title       string `json:"title"`
+	Version     string `json:"version"`
+}
+
+// PartialSwagger is a structure that can be used to read just the service information from a Swagger JSON document.
+type PartialSwagger struct {
+	Info *SwaggerServiceInfo `json:"info"`
+}
+
+func getSwaggerServiceInfo() (*SwaggerServiceInfo, error) {
+	wrapMsg := "unable to load the Swagger JSON"
+
+	// Open the file containing the Swagger JSON.
+	file, err := os.Open("swagger.json")
+	if err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+
+	// Parse the bits we want out of the Swagger JSON.
+	decoder := json.NewDecoder(file)
+	partialSwagger := &PartialSwagger{}
+	err = decoder.Decode(partialSwagger)
+	if err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+	return partialSwagger.Info, nil
+}
 func RegisterHandlers(s controllers.Server) {
 	s.Router.GET("/", s.RootHandler)
 
@@ -35,7 +73,6 @@ func RegisterHandlers(s controllers.Server) {
 
 	//Users
 	users := v1.Group("/users")
-	users.GET("/", s.GetAllUsers)
 	users.GET("/:username/plan", s.GetUserPlanDetails)
 	users.GET("/:username/quotas", s.GetUserAllQuotas)
 	users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
@@ -43,6 +80,8 @@ func RegisterHandlers(s controllers.Server) {
 
 	//Admin
 	admin := v1.Group("/admin")
+	admin.GET("/users", s.GetAllUsers)
+	admin.GET("/users/:username", s.GetAllUserActivePlans)
 	admin.GET("/quotas", s.GetAllActiveQuotas)
 	admin.PUT("/quotas/:quotaid", s.UpdateQuota)
 	admin.GET("/usages", s.GetAllActiveUsage)

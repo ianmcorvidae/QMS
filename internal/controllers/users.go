@@ -18,10 +18,11 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 }
 
 type PlanDetails struct {
-	Name  string
-	Usage string
-	Quota float64
-	Unit  string
+	UserId string
+	Name   string
+	Usage  string
+	Quota  float64
+	Unit   string
 }
 type QuotaDetails struct {
 	PlanName     string
@@ -123,7 +124,7 @@ func (s Server) GetUserUsageDetails(ctx echo.Context) error {
 	}
 
 	plandata := []UsageDetails{}
-	err := s.GORMDB.Raw(`select plans.name as plan_name,usages.usageu,resource_types.name as resource_nam,resource_types.unit as resource_unit from
+	err := s.GORMDB.Raw(`select user_plans.user_id, plans.name as plan_name,usages.usageu,resource_types.name as resource_nam,resource_types.unit as resource_unit from
 	user_plans
 	join plans on plans.id=user_plans.plan_id
 	join usages on user_plans.id=usages.user_plan_id

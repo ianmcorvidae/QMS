@@ -2,7 +2,6 @@ package model
 
 import "net/http"
 
-// RootResponse describes the response of the root endpoint.
 type RootResponse struct {
 
 	// The name of the service.
@@ -14,12 +13,14 @@ type RootResponse struct {
 	// The service version.
 	Version string `json:"version"`
 }
+
 type Response struct {
 	Result interface{} `json:"result,omitempty"`
 	Error  string      `json:"error,omitempty"`
 	Status string      `json:"status"`
 }
 
+// Basic success Response
 func SuccessResponse(data interface{}, status int) Response {
 	return Response{
 		Result: data,
@@ -27,6 +28,7 @@ func SuccessResponse(data interface{}, status int) Response {
 	}
 }
 
+// Basic error response
 func ErrorResponse(errStr string, status int) Response {
 	return Response{
 		Error:  errStr,
