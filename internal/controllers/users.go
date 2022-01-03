@@ -8,6 +8,11 @@ import (
 	"github.com/labstack/echo"
 )
 
+// swagger:route GET admin/users adm in listUsers
+// Returns a List all the Users By Admin
+// responses:ssw
+//   200: UserResponse
+//   404: RootResponse
 func (s Server) GetAllUsers(ctx echo.Context) error {
 	data := []model.Users{}
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -38,6 +43,11 @@ type UsageDetails struct {
 	Unit         string
 }
 
+// swagger:route GET /users/{UserName}/plan users listUserPlansByID
+// Returns a List all the User Plan Details
+// responses:
+//   200: UserResponse
+//   404: RootResponse
 func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	username := ctx.Param("username")
 	if username == "" {
@@ -62,6 +72,13 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
+
+// swagger:route GET /users/{UserName}/quotas users listAllUserQuotaByID
+// Returns a Lists the User Quota Details.
+// responses:
+//   200: UserResponse
+//   404: RootResponse
+//
 func (s Server) GetUserAllQuotas(ctx echo.Context) error {
 	resource := ctx.QueryParam("resource")
 	resourceFilter := ""
@@ -87,6 +104,13 @@ func (s Server) GetUserAllQuotas(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
+
+// swagger:route GET /users/{UserName}/quotas/{quotaid} users listUserQuotaByID
+// Returns a Lists the User Quota Details.
+// responses:
+//   200: UserResponse
+//   404: RootResponse
+//
 func (s Server) GetUserQuotaDetails(ctx echo.Context) error {
 	quotaid := ctx.Param("quotaid")
 	if quotaid == "" {
@@ -112,6 +136,13 @@ func (s Server) GetUserQuotaDetails(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
+
+// swagger:route GET /users/{UserName}/usages users listUserUsageDetailsByID
+// Returns a Lists the User Quota Details.
+// responses:
+//   200: UserResponse
+//   404: RootResponse
+//
 func (s Server) GetUserUsageDetails(ctx echo.Context) error {
 	resource := ctx.QueryParam("resource")
 	resourceFilter := ""

@@ -7,6 +7,12 @@ import (
 	"github.com/labstack/echo"
 )
 
+// swagger:route GET /plans plans listPlans
+// Returns a List all the plans
+// responses:
+//   200: plansResponse
+//   404: RootResponse
+
 func (s Server) GetAllPlans(ctx echo.Context) error {
 	data := []model.Plans{}
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -15,6 +21,12 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }
+
+// swagger:route GET /plans/{PlanID} plans listPlansByID
+// Returns a List all the plans
+// responses:
+//   200: plansResponse
+//   500: RootResponse
 
 func (s Server) GetPLansForID(ctx echo.Context) error {
 	plan_id := ctx.Param("plan_id")

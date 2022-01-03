@@ -14,10 +14,15 @@ type RootResponse struct {
 	Version string `json:"version"`
 }
 
+// A list of Responses.
+// swagger:response RootResponse
 type Response struct {
+	// The result of the API.
 	Result interface{} `json:"result,omitempty"`
-	Error  string      `json:"error,omitempty"`
-	Status string      `json:"status"`
+	// Error is returned from the API.
+	Error string `json:"error,omitempty"`
+	// Status of the Request.
+	Status string `json:"status"`
 }
 
 // Basic success Response

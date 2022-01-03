@@ -164,6 +164,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 		resourcefilter = ` and resource_types.name = '` + resource + `'`
 	}
 	username := ctx.QueryParam("username")
+
 	usernamefilter := ""
 	if username != "" {
 		usernamefilter = ` and users.username = '` + username + `'`
