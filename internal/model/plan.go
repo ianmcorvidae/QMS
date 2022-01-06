@@ -51,17 +51,41 @@ func (pqd *PlanQuotaDefaults) TableName() string {
 	return "plan_quota_defaults"
 }
 
+// UserPlans define the structure for the API User plans.
+// swagger:model
 type UserPlans struct {
 	gorm.Model
-	ID                 string    `gorm:"column:id;primaryKey;type:uuid"`
+	//The id for the UserPlans.
+	// in: path
+	//required: true
+	ID string `gorm:"column:id;primaryKey;type:uuid"`
+	//The effective start date of the plan for the user.
+	// in: path
+	//required: false
 	EffectiveStartDate time.Time `gorm:"column:effective_start_date;type:date"`
-	EffectiveEndDate   time.Time `gorm:"column:effective_end_date;type:date"`
-	AddedBy            string    `gorm:"column:added_by;type:varchar(100)"`
-	LastModifiedBy     string    `gorm:"column:last_modified_by;type:varchar(100)"`
-	UserID             string
-	Users              Users `gorm:"foreignKey:UserID;references:ID;"`
-	PlanID             string
-	Plans              Plans `gorm:"foreignKey:PlanID;references:ID;"`
+	//The effective end date of the plan for the user.
+	// in: path
+	//required: false
+	EffectiveEndDate time.Time `gorm:"column:effective_end_date;type:date"`
+	//Added by:.
+	// in: path
+	//required: false
+	AddedBy string `gorm:"column:added_by;type:varchar(100)"`
+	//The last modified of the plan for the user.
+	// in: path
+	//required: false
+	LastModifiedBy string `gorm:"column:last_modified_by;type:varchar(100)"`
+	//The UserID for the user.
+	// in: path
+	//required: true
+	UserID string
+	Users  Users `gorm:"foreignKey:UserID;references:ID;"`
+
+	//The planID for the user.
+	// in: path
+	//required: true
+	PlanID string
+	Plans  Plans `gorm:"foreignKey:PlanID;references:ID;"`
 }
 
 func (up *UserPlans) TableName() string {
