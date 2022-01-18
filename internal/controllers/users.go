@@ -17,7 +17,7 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 	data := []model.Users{}
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{"error": err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }
@@ -51,7 +51,7 @@ type UsageDetails struct {
 func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usernaem", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 	now := time.Now().Format("2006-01-02")
 
@@ -87,20 +87,19 @@ func (s Server) GetUserAllQuotas(ctx echo.Context) error {
 	}
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usernaem", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 
 	plandata := []QuotaDetails{}
-	err := s.GORMDB.Raw(`select plans.name as plan_name,quotas.quota,resource_types.name as resource_nam,resource_types.unit as resource_unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join quotas on user_plans.id=quotas.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	users.username=?`+resourceFilter, username).Scan(&plandata).Error
+	err := s.GORMDB.Debug().Raw(`select plans.name as plan_name, quotas.quota, resource_types.name as resource_name, resource_types.unit from user_plans	
+	join plans on plans.id = user_plans.plan_id		
+	join quotas on user_plans.id=quotas.user_plan_id	
+	join resource_types on resource_types.id=quotas.resource_type_id	
+	join users on users.id = user_plans.user_id	
+	where			
+	users.username =?`+resourceFilter, username, resource).Scan(&plandata).Error
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{"error": err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
@@ -119,22 +118,22 @@ func (s Server) GetUserQuotaDetails(ctx echo.Context) error {
 
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usrname", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 
-	plandata := []PlanDetails{}
-	err := s.GORMDB.Raw(`select plans.name as plan_name,quotas.quota,resource_types.name as resource_nam,resource_types.unit as resource_unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join quotas on user_plans.id=quotas.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	users.username=? and quotas.id=?`, username, quotaid).Scan(&plandata).Error
+	quotadata := []QuotaDetails{}
+	err := s.GORMDB.Debug().Raw(`select plans.name as plan_name, quotas.quota, resource_types.name as resource_name, resource_types.unit from user_plans	
+		join plans on plans.id = user_plans.plan_id		
+		join quotas on user_plans.id=quotas.user_plan_id	
+		join resource_types on resource_types.id=quotas.resource_type_id	
+		join users on users.id = user_plans.user_id	
+		where				
+		users.username =? and 	
+		quotas.id = ?`, username, quotaid).Scan(&quotadata).Error
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{"error": err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
+	return ctx.JSON(http.StatusOK, model.SuccessResponse(quotadata, http.StatusOK))
 }
 
 // swagger:route GET /users/{UserName}/usages users listUserUsageDetailsByID
@@ -151,21 +150,20 @@ func (s Server) GetUserUsageDetails(ctx echo.Context) error {
 	}
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usrname", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 
 	plandata := []UsageDetails{}
-	err := s.GORMDB.Raw(`select user_plans.user_id, plans.name as plan_name,usages.usageu,resource_types.name as resource_nam,resource_types.unit as resource_unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join usages on user_plans.id=usages.user_plan_id
-	join quotas on user_plans.id=quotas.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	users.username=?`+resourceFilter, username, resource).Scan(&plandata).Error
+	err := s.GORMDB.Debug().Raw(`select plans.name as plan_name, usages.usage, resource_types.unit, resource_types.name as resource_name from user_plans 	
+		join plans on plans.id = user_plans.plan_id 	
+		join usages on user_plans.id=usages.user_plan_id 	
+		join quotas on user_plans.id=quotas.user_plan_id 	
+		join resource_types on resource_types.id=quotas.resource_type_id	
+		join users on users.id = user_plans.user_id	
+		where 					
+		users.username =?`+resourceFilter, username, resource).Scan(&plandata).Error
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{"error": err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }

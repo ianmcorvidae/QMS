@@ -63,8 +63,8 @@ func RegisterHandlers(s controllers.Server) {
 	v1.GET("/", s.RootHandler)
 	//Plans
 	plans := v1.Group("/plans")
-	plans.GET("/plans", s.GetAllPlans)
-	plans.GET("/plans/:plan_id", s.GetPLansForID)
+	plans.GET("/", s.GetAllPlans)
+	plans.GET("/:plan_id", s.GetPlansForID)
 
 	//Users
 	users := v1.Group("/users")

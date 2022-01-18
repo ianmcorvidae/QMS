@@ -191,7 +191,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usernaem", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 	now := time.Now().Format("2006-01-02")
 

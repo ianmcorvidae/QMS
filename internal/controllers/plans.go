@@ -28,8 +28,11 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 //   200: plansResponse
 //   500: RootResponse
 
-func (s Server) GetPLansForID(ctx echo.Context) error {
+func (s Server) GetPlansForID(ctx echo.Context) error {
 	plan_id := ctx.Param("plan_id")
+	if plan_id == "" {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
+	}
 	data := model.Plans{ID: plan_id}
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {

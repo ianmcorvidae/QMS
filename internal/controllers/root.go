@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// API defines the REST API of the notifications service
+// Server defines the REST API of the QMS
 type Server struct {
 	Router  *echo.Echo
 	DB      *sql.DB
