@@ -4,12 +4,13 @@ install-swagger:
 	which swagger || go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
 swagger.json: install-swagger
-	go mod vendor && swagger generate spec -o ./swagger.json --scan-models
+	swagger generate spec -o ./swagger.json --scan-models
 
 requests: swagger.json
-	go build
+	go build cmd/main.go & go run cmd/main.go
+	
 
 clean:
-	rm -rf swagger.json requests vendor
+	rm -rf swagger.json 
 
 .PHONY: install-swagger clean all

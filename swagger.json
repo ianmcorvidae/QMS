@@ -1,0 +1,530 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Documentation of the QMS Api",
+    "title": "QMS",
+    "version": "V1"
+  },
+  "basePath": "/",
+  "paths": {
+    "/plans": {
+      "get": {
+        "description": "Returns a List all the plans",
+        "tags": [
+          "plans"
+        ],
+        "operationId": "listPlans",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/plansResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    },
+    "/plans/{PlanID}": {
+      "get": {
+        "description": "Returns a List all the plans",
+        "tags": [
+          "plans"
+        ],
+        "operationId": "listPlansByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "PlanID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/plansResponse"
+          },
+          "500": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    },
+    "/users/{UserName}/plan": {
+      "get": {
+        "description": "Returns a List all the User Plan Details",
+        "tags": [
+          "users"
+        ],
+        "operationId": "listUserPlansByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "UserName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    },
+    "/users/{UserName}/quotas": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Returns a Lists the User Quota Details.",
+        "operationId": "listAllUserQuotaByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "UserName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    },
+    "/users/{UserName}/quotas/{quotaid}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Returns a Lists the User Quota Details.",
+        "operationId": "listUserQuotaByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "UserName",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "QuotaID",
+            "name": "quotaid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    },
+    "/users/{UserName}/usages": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Returns a Lists the User Quota Details.",
+        "operationId": "listUserUsageDetailsByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "UserName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserResponse"
+          },
+          "404": {
+            "$ref": "#/responses/RootResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "DeletedAt": {
+      "$ref": "#/definitions/NullTime"
+    },
+    "Model": {
+      "description": "Model a basic GoLang struct which includes the following fields: ID, CreatedAt, UpdatedAt, DeletedAt\nIt may be embedded into your model or you may build your own model without it\ntype User struct {\ngorm.Model\n}",
+      "type": "object",
+      "properties": {
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DeletedAt": {
+          "$ref": "#/definitions/DeletedAt"
+        },
+        "ID": {
+          "type": "integer",
+          "format": "uint64"
+        },
+        "UpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "x-go-package": "gorm.io/gorm"
+    },
+    "NullTime": {
+      "description": "NullTime implements the Scanner interface so\nit can be used as a scan destination, similar to NullString.",
+      "type": "object",
+      "title": "NullTime represents a time.Time that may be null.",
+      "properties": {
+        "Time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Valid": {
+          "type": "boolean"
+        }
+      },
+      "x-go-package": "database/sql"
+    },
+    "PlanQuotaDefaults": {
+      "type": "object",
+      "title": "PlanQuotaDefaults define the structure for an Api Plan and Quota.",
+      "required": [
+        "ID"
+      ],
+      "properties": {
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DeletedAt": {
+          "$ref": "#/definitions/DeletedAt"
+        },
+        "ID": {
+          "description": "The id for the plan.\nin: path",
+          "type": "string"
+        },
+        "PlanID": {
+          "description": "The PlanID for the PlanQuotaDefault.",
+          "type": "string"
+        },
+        "Plans": {
+          "$ref": "#/definitions/Plans"
+        },
+        "QuotaValue": {
+          "description": "The QuotaValue for the Quota.\nin: path",
+          "type": "number",
+          "format": "double"
+        },
+        "ResourceTypeID": {
+          "description": "The ResourceTypeID for the PlanQuotaDefault.",
+          "type": "string"
+        },
+        "ResourceTypes": {
+          "$ref": "#/definitions/ResourceTypes"
+        },
+        "UpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "Plans": {
+      "type": "object",
+      "title": "Plans define the structure for an Api Plan.",
+      "required": [
+        "ID",
+        "Name",
+        "Description"
+      ],
+      "properties": {
+        "Description": {
+          "description": "the Description for the plan",
+          "type": "string"
+        },
+        "ID": {
+          "description": "The id for the plan\nin: path",
+          "type": "string"
+        },
+        "Name": {
+          "description": "The Name for the plan",
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "Quotas": {
+      "type": "object",
+      "title": "Quotas define the structure for an Api Plan and Quota.",
+      "required": [
+        "ID",
+        "AddedBy",
+        "UserPlanID",
+        "ResourceTypeID"
+      ],
+      "properties": {
+        "AddedBy": {
+          "description": "Added by.\nin: path",
+          "type": "string"
+        },
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DeletedAt": {
+          "$ref": "#/definitions/DeletedAt"
+        },
+        "ID": {
+          "description": "The id for the Quotas.\nin: path",
+          "type": "string"
+        },
+        "LastModifiedBy": {
+          "description": "The last date the record was modified\nin: path",
+          "type": "string"
+        },
+        "Quota": {
+          "description": "The limit on the resource.\nin: path",
+          "type": "number",
+          "format": "double"
+        },
+        "ResourceTypeID": {
+          "description": "The resourceTypeId for the Quota.\nin: path",
+          "type": "string"
+        },
+        "ResourceTypes": {
+          "$ref": "#/definitions/ResourceTypes"
+        },
+        "UpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "UserPlanID": {
+          "description": "The userPlanId for the Quota.\nin: path",
+          "type": "string"
+        },
+        "UserPlans": {
+          "$ref": "#/definitions/UserPlans"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "ResourceTypes": {
+      "type": "object",
+      "title": "ResourceTypes define the structure for ResourceTypes.",
+      "required": [
+        "ID",
+        "Name",
+        "Unit"
+      ],
+      "properties": {
+        "ID": {
+          "description": "The id for the Resource.\nin: path",
+          "type": "string"
+        },
+        "Name": {
+          "description": "The Name for the Resource.\nin: path",
+          "type": "string"
+        },
+        "Unit": {
+          "description": "the Unit/measure for the Resource.\nin: path",
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "Usages": {
+      "type": "object",
+      "title": "Usages define the structure for API Usages.",
+      "required": [
+        "ID",
+        "Usage",
+        "UserPlanID",
+        "ResourceTypeID"
+      ],
+      "properties": {
+        "AddedBy": {
+          "description": "Added by.\nin: path",
+          "type": "string"
+        },
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DeletedAt": {
+          "$ref": "#/definitions/DeletedAt"
+        },
+        "ID": {
+          "description": "The id for the plan.\nin: path",
+          "type": "string"
+        },
+        "LastModifiedBy": {
+          "description": "The last date the record was modified.\nin: path",
+          "type": "string"
+        },
+        "ResourceTypeID": {
+          "description": "The ResourceTypeID for the Usages.\nin: path",
+          "type": "string"
+        },
+        "ResourceTypes": {
+          "$ref": "#/definitions/ResourceTypes"
+        },
+        "UpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Usage": {
+          "description": "The current usage of the resource.\nin: path",
+          "type": "number",
+          "format": "double"
+        },
+        "UserPlanID": {
+          "description": "The UserPlanID for the Usages.\nin: path",
+          "type": "string"
+        },
+        "UserPlans": {
+          "$ref": "#/definitions/UserPlans"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "UserPlans": {
+      "type": "object",
+      "title": "UserPlans define the structure for the API User plans.",
+      "required": [
+        "ID",
+        "UserID",
+        "PlanID"
+      ],
+      "properties": {
+        "AddedBy": {
+          "description": "Added by:.\nin: path",
+          "type": "string"
+        },
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DeletedAt": {
+          "$ref": "#/definitions/DeletedAt"
+        },
+        "EffectiveEndDate": {
+          "description": "The effective end date of the plan for the user.\nin: path",
+          "type": "string",
+          "format": "date-time"
+        },
+        "EffectiveStartDate": {
+          "description": "The effective start date of the plan for the user.\nin: path",
+          "type": "string",
+          "format": "date-time"
+        },
+        "ID": {
+          "description": "The id for the UserPlans.\nin: path",
+          "type": "string"
+        },
+        "LastModifiedBy": {
+          "description": "The last modified of the plan for the user.\nin: path",
+          "type": "string"
+        },
+        "PlanID": {
+          "description": "The planID for the user.\nin: path",
+          "type": "string"
+        },
+        "Plans": {
+          "$ref": "#/definitions/Plans"
+        },
+        "UpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "UserID": {
+          "description": "The UserID for the user.\nin: path",
+          "type": "string"
+        },
+        "Users": {
+          "$ref": "#/definitions/Users"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    },
+    "Users": {
+      "type": "object",
+      "title": "Users define the structure of an User.",
+      "required": [
+        "ID",
+        "UserName"
+      ],
+      "properties": {
+        "ID": {
+          "description": "The id for the User.\nin: path",
+          "type": "string"
+        },
+        "UserName": {
+          "description": "The Name for the User.\nin: path",
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/cyverse/QMS/internal/model"
+    }
+  },
+  "responses": {
+    "RootResponse": {
+      "description": "A list of Responses.",
+      "schema": {
+        "type": "object"
+      },
+      "headers": {
+        "error": {
+          "type": "string",
+          "description": "Error is returned from the API."
+        },
+        "result": {
+          "description": "The result of the API."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the Request."
+        }
+      }
+    },
+    "UserResponse": {
+      "description": "A list of Plans for particular UserName.\nRequest type listing Users",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/UserPlans"
+        }
+      }
+    },
+    "plansResponse": {
+      "description": "A list of Responses for Plans.",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Plans"
+        }
+      }
+    }
+  }
+}
