@@ -64,7 +64,7 @@ func RegisterHandlers(s controllers.Server) {
 	//Plans
 	plans := v1.Group("/plans")
 	plans.GET("/", s.GetAllPlans)
-	plans.GET("/:plan_id", s.GetPlansForID)
+	plans.GET("/p/:plan_id", s.GetPlansForID)
 
 	//Users
 	users := v1.Group("/users")

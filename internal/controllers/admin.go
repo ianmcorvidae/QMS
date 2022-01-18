@@ -169,7 +169,6 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 	if username != "" {
 		usernamefilter = ` and users.username = '` + username + `'`
 	}
-	now := time.Now().Format("2006-01-02")
 
 	plandata := []AdminUsageDetails{}
 
@@ -180,8 +179,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 		join resource_types on resource_types.id=quotas.resource_type_id
 		join users on users.id = user_plans.user_id
 		where 
-		user_plans.effective_start_date <=? and 
-		user_plans.effective_end_date >=? `+usernamefilter+resourcefilter, now+"T00:00:00", now+"T23:59:59").Scan(&plandata).Error
+		cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date` + usernamefilter + resourcefilter).Scan(&plandata).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}

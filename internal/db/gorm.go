@@ -12,9 +12,7 @@ import (
 func InitGORMConnection(db *sql.DB) (*gorm.DB, error) {
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
-	}), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	}))
 	if err != nil {
 		return gormDB, errors.New("failed to connect database")
 	}

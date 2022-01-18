@@ -6,7 +6,7 @@ type ResourceTypes struct {
 	//The id for the Resource.
 	// in: path
 	//required: true
-	ID string `gorm:"column:id;primaryKey;type:uuid"`
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	// The Name for the Resource.
 	// in: path
 	//required: true

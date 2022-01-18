@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/cyverse/QMS/internal/model"
@@ -33,10 +34,14 @@ func (s Server) GetPlansForID(ctx echo.Context) error {
 	if plan_id == "" {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
 	}
-	data := model.Plans{ID: plan_id}
-	err := s.GORMDB.Debug().Find(&data).Error
+	data := model.Plans{}
+	err := s.GORMDB.Debug().Where("id=@id", sql.Named("id", plan_id)).Find(&data).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+	if data.Name == "" || data.Description == "" {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
+	}
+
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }

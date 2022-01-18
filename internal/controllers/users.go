@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo"
@@ -53,20 +52,19 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	if username == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
-	now := time.Now().Format("2006-01-02")
+	// now := time.Now().Format("2006-01-02")
 
 	plandata := []PlanDetails{}
-	err := s.GORMDB.Raw(`select plans.name,usage.usage,quotas.quota,resource_types.unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join usages on user_plans.id=usages.user_plan_id
-	join quotas on user_plans.id=usages.user_plan_id
+	err := s.GORMDB.Debug().Raw(`select plans.name,usages.usage,quotas.quota,resource_types.unit 
+	from user_plans 
+	join plans on plans.id = user_plans.plan_id 
+	join usages on user_plans.id=usages.user_plan_id 
+	join quotas on user_plans.id=quotas.user_plan_id 
 	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	user_plans.effective_start_date<=? and
-	user_plans.effective_end_date>=? and
-	users.username=?`, now+"T00:00:00", now+"T23:59:59", username).Scan(&plandata).Error
+	join users on users.id = user_plans.user_id
+	where 
+	cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
+	and users.username=?`, username).Scan(&plandata).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
