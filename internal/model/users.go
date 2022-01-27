@@ -6,11 +6,11 @@ type Users struct {
 	//The id for the User.
 	// in: path
 	//required: true
-	ID string `gorm:"column:id;primaryKey;type:uuid"`
+	ID *string `gorm:"type:uuid" json:"id"`
 	// The Name for the User.
 	// in: path
 	//required: true
-	UserName string `gorm:"column:username;type:varchar(100)"`
+	UserName string `gorm:"not null;unique" json:"username"`
 }
 
 func (u *Users) TableName() string {

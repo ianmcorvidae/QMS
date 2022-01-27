@@ -11,29 +11,29 @@ type Quotas struct {
 	//The id for the Quotas.
 	// in: path
 	//required: true
-	ID string `gorm:"column:id;primaryKey;type:uuid"`
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	//The limit on the resource.
 	// in: path
 	//required: false
-	Quota float64 `gorm:"column:quota;type:numeric"`
+	Quota float64 `json:"quota"`
 	//Added by.
 	// in: path
 	//required: true
-	AddedBy string `gorm:"column:added_by;type:varchar(100)"`
+	AddedBy string `gorm:"json:added_by"`
 	//The last date the record was modified
 	// in: path
 	//required: false
-	LastModifiedBy string `gorm:"column:last_modified_by;type:varchar(100)"`
+	LastModifiedBy string `gorm:"json:last_modified_by"`
 	//The userPlanId for the Quota.
 	// in: path
 	//required: true
-	UserPlanID string    `gorm:"unique"`
-	UserPlans  UserPlans `gorm:"foreignKey:UserPlanID;references:ID;"`
+	UserPlanID *string   `gorm:"type:uuid;not null" json:"-"`
+	UserPlan   UserPlans `json:"user_plans"`
 	//The resourceTypeId for the Quota.
 	// in: path
 	//required: true
-	ResourceTypeID string        `gorm:"unique"`
-	ResourceTypes  ResourceTypes `gorm:"foreignKey:ResourceTypeID;references:ID"`
+	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
+	ResourceType   ResourceTypes `json:"resource_types"`
 }
 
 func (q *Quotas) TableName() string {

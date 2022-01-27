@@ -12,7 +12,7 @@ type Plans struct {
 	//The id for the plan
 	// in: path
 	//required: true
-	ID *string `gorm:"type:uuid" json:"id"`
+	ID *string `gorm:"type:uuiddefault:uuid_generate_v1()" json:"id"`
 	// The Name for the plan
 	//required: true
 	Name string `gorm:"not null;unique" json:"name"`
@@ -49,7 +49,7 @@ type UserPlans struct {
 	//The id for the UserPlans.
 	// in: path
 	//required: true
-	ID *string `gorm:"type:uuid" json:"id"`
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	//The effective start date of the plan for the user.
 	// in: path
 	//required: false

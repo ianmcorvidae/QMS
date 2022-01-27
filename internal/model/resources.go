@@ -6,15 +6,15 @@ type ResourceTypes struct {
 	//The id for the Resource.
 	// in: path
 	//required: true
-	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+	ID *string `gorm:"type:uuid" json:"id"`
 	// The Name for the Resource.
 	// in: path
 	//required: true
-	Name string `gorm:"column:name;type:varchar(100)"`
+	Name string `gorm:"not null;unique" json:"name"`
 	// the Unit/measure for the Resource.
 	// in: path
 	//required: true
-	Unit string `gorm:"column:unit;type:varchar(100)"`
+	Unit string `gorm:"not null;unique" json:"unit"`
 }
 
 func (rt *ResourceTypes) TableName() string {

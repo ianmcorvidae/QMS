@@ -55,6 +55,7 @@ func InitRouter() *echo.Echo {
 // 	}
 // 	return partialSwagger.Info, nil
 // }
+
 func RegisterHandlers(s controllers.Server) {
 	s.Router.GET("/", s.RootHandler)
 
@@ -63,20 +64,26 @@ func RegisterHandlers(s controllers.Server) {
 	v1.GET("/", s.RootHandler)
 	//Plans
 	plans := v1.Group("/plans")
-	plans.GET("/", s.GetAllPlans)
+	// plans.GET("/", s.GetAllPlans)
 	plans.GET("/p/:plan_id", s.GetPlansForID)
-
+	// should the user be able to view plans using plan ID
+	plans.POST("/", s.AddPlans)
 	//Users
+	//
 	users := v1.Group("/users")
+	users.POST("/add", s.AddUsers)
+
 	users.GET("/:username/plan", s.GetUserPlanDetails)
+	// view all the plan details along with usage and quotas
 	users.GET("/:username/quotas", s.GetUserAllQuotas)
-	users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
-	users.GET("/:username/usages", s.GetUserUsageDetails)
+	// users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
+	// what if the users have multile palms and wants to look at a particular plan
+	// users.GET("/:username/usages", s.GetUserUsageDetails)
 
 	//Admin
 	admin := v1.Group("/admin")
-	admin.GET("/users", s.GetAllUsers)
-	admin.GET("/users/:username", s.GetAllUserActivePlans)
+	// admin.GET("/users", s.GetAllUsers)
+	// admin.GET("/users/:username", s.GetAllUserActivePlans)
 	admin.GET("/quotas", s.GetAllActiveQuotas)
 	admin.PUT("/quotas/:quotaid", s.UpdateQuota)
 	admin.GET("/usages", s.GetAllActiveUsage)
@@ -84,4 +91,8 @@ func RegisterHandlers(s controllers.Server) {
 
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
+	v1.POST("/resources/add", s.AddResourceType)
+	v1.POST("/planquota/add", s.AddPlanQuotaDefault)
+	v1.POST("/Userplan/add", s.AddUserPlanDetails)
+
 }

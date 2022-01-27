@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -40,6 +41,8 @@ type UpdateQuotaReq struct {
 	Value float64 `json:"value"`
 }
 
+// func GetQuota(db *sql.DB, name string)
+
 func (s Server) UpdateQuota(ctx echo.Context) error {
 	quotaid := ctx.Param("quotaid")
 	if quotaid == "" {
@@ -62,7 +65,7 @@ func (s Server) UpdateQuota(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 
-	if quota.ID != quotaid {
+	if *quota.ID != quotaid {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Quota Not Found", http.StatusBadRequest))
 	}
 
@@ -84,7 +87,10 @@ func (s Server) UpdateQuota(ctx echo.Context) error {
 
 func (s Server) UpdateUsages(ctx echo.Context) error {
 	req := UpdateUsagesReq{}
+	fmt.Println(req, "================================>")
+
 	err := ctx.Bind(&req)
+	fmt.Println(req, "================================>")
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
@@ -211,3 +217,15 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 
 }
+
+// func (s Server) AddQuotas(ctx echo.Context) error {
+// 	// id := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
+// 	planID := "2e146110-7bf1-11ec-90d6-0242ac120003"
+// 	resourceTypeID := "1783e71c-7cb5-11ec-90d6-0242ac120003"
+// 	var req = model.Quotas{Quota: 1000, AddedBy: "Admin", UserPlanID: "", ResourceTypeID: &resourceTypeID}
+// 	err := s.GORMDB.Debug().Create(&req).Error
+// 	if err != nil {
+// 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+// 	}
+// 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+// }

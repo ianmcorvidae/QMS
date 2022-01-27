@@ -271,10 +271,8 @@
       "type": "object",
       "title": "Quotas define the structure for an Api Plan and Quota.",
       "required": [
-        "ID",
-        "AddedBy",
-        "UserPlanID",
-        "ResourceTypeID"
+        "id",
+        "AddedBy"
       ],
       "properties": {
         "AddedBy": {
@@ -289,34 +287,32 @@
           "$ref": "#/definitions/DeletedAt"
         },
         "ID": {
-          "description": "The id for the Quotas.\nin: path",
-          "type": "string"
+          "type": "integer",
+          "format": "uint64"
         },
         "LastModifiedBy": {
           "description": "The last date the record was modified\nin: path",
           "type": "string"
         },
-        "Quota": {
-          "description": "The limit on the resource.\nin: path",
-          "type": "number",
-          "format": "double"
-        },
-        "ResourceTypeID": {
-          "description": "The resourceTypeId for the Quota.\nin: path",
-          "type": "string"
-        },
-        "ResourceTypes": {
-          "$ref": "#/definitions/ResourceTypes"
-        },
         "UpdatedAt": {
           "type": "string",
           "format": "date-time"
         },
-        "UserPlanID": {
-          "description": "The userPlanId for the Quota.\nin: path",
-          "type": "string"
+        "id": {
+          "description": "The id for the Quotas.\nin: path",
+          "type": "string",
+          "x-go-name": "ID"
         },
-        "UserPlans": {
+        "quota": {
+          "description": "The limit on the resource.\nin: path",
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Quota"
+        },
+        "resource_types": {
+          "$ref": "#/definitions/ResourceTypes"
+        },
+        "user_plans": {
           "$ref": "#/definitions/UserPlans"
         }
       },
@@ -327,22 +323,24 @@
       "title": "ResourceTypes define the structure for ResourceTypes.",
       "required": [
         "id",
-        "Name",
-        "Unit"
+        "name",
+        "unit"
       ],
       "properties": {
-        "Name": {
-          "description": "The Name for the Resource.\nin: path",
-          "type": "string"
-        },
-        "Unit": {
-          "description": "the Unit/measure for the Resource.\nin: path",
-          "type": "string"
-        },
         "id": {
           "description": "The id for the Resource.\nin: path",
           "type": "string",
           "x-go-name": "ID"
+        },
+        "name": {
+          "description": "The Name for the Resource.\nin: path",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "unit": {
+          "description": "the Unit/measure for the Resource.\nin: path",
+          "type": "string",
+          "x-go-name": "Unit"
         }
       },
       "x-go-package": "github.com/cyverse/QMS/internal/model"
@@ -457,17 +455,19 @@
       "type": "object",
       "title": "Users define the structure of an User.",
       "required": [
-        "ID",
-        "UserName"
+        "id",
+        "username"
       ],
       "properties": {
-        "ID": {
+        "id": {
           "description": "The id for the User.\nin: path",
-          "type": "string"
+          "type": "string",
+          "x-go-name": "ID"
         },
-        "UserName": {
+        "username": {
           "description": "The Name for the User.\nin: path",
-          "type": "string"
+          "type": "string",
+          "x-go-name": "UserName"
         }
       },
       "x-go-package": "github.com/cyverse/QMS/internal/model"

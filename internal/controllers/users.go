@@ -165,3 +165,13 @@ func (s Server) GetUserUsageDetails(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
+
+func (s Server) AddUsers(ctx echo.Context) error {
+	id := "6b858690-7cd8-11ec-90d6-0242ac120003"
+	var req = model.Users{ID: &id, UserName: "UserTest1"}
+	err := s.GORMDB.Debug().Create(&req).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+	}
+	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+}

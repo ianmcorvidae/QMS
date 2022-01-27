@@ -22,7 +22,6 @@ func Init() {
 		e.Logger.Fatalf("service initialization failed: %s", err.Error())
 	}
 
-	// Define the primary API handler.
 	s := controllers.Server{
 		Router:  e,
 		DB:      db,
@@ -34,8 +33,6 @@ func Init() {
 
 	// Register the handlers.
 	RegisterHandlers(s)
-
-	// Start the service.
 	e.Logger.Info("starting the service")
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", 9000))) //TODO: get the value form config
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", 9000)))
 }
