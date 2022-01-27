@@ -74,6 +74,7 @@ func RegisterHandlers(s controllers.Server) {
 	users.POST("/add", s.AddUsers)
 
 	users.GET("/:username/plan", s.GetUserPlanDetails)
+
 	// view all the plan details along with usage and quotas
 	users.GET("/:username/quotas", s.GetUserAllQuotas)
 	// users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
@@ -85,9 +86,11 @@ func RegisterHandlers(s controllers.Server) {
 	// admin.GET("/users", s.GetAllUsers)
 	// admin.GET("/users/:username", s.GetAllUserActivePlans)
 	admin.GET("/quotas", s.GetAllActiveQuotas)
+
 	admin.PUT("/quotas/:quotaid", s.UpdateQuota)
 	admin.GET("/usages", s.GetAllActiveUsage)
 	admin.POST("/usages", s.UpdateUsages)
+	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserQuota)
 
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
