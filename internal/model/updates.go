@@ -7,7 +7,7 @@ import (
 )
 
 type UpdateOperations struct {
-	ID   string `gorm:"column:id;primaryKey;type:uuid"`
+	ID   string `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
 	Name string `gorm:"column:name;type:varchar(100)"`
 }
 
@@ -26,7 +26,7 @@ func (tm *TrackedMetrics) TableName() string {
 
 type Updates struct {
 	gorm.Model
-	ID               string    `gorm:"column:id;primaryKey;type:uuid"`
+	ID               string    `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
 	ValueType        string    `gorm:"column:value_type;type:varchar(100)"`
 	Value            float64   `gorm:"coumn:value;type:numeric"`
 	UpdatedBy        string    `gorm:"column:updated_by;type:varchar(100)"`

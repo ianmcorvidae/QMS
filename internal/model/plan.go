@@ -27,7 +27,7 @@ type Plan struct {
 // swagger:model
 type PlanQuotaDefaults struct {
 	gorm.Model
-	ID             *string       `gorm:"type:uuid" json:"id"`
+	ID             *string       `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	PlanID         *string       `gorm:"type:uuid;not null" json:"-"`
 	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
 	QuotaValue     float64       `gorm:"not null"`

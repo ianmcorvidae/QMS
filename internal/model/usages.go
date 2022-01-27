@@ -11,7 +11,7 @@ type Usages struct {
 	//The id for the plan.
 	// in: path
 	//required: true
-	ID string `gorm:"column:id;primaryKey;type:uuid"`
+	ID string `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
 	//The current usage of the resource.
 	// in: path
 	//required: true
