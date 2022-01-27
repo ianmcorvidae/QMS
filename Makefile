@@ -7,7 +7,7 @@ swagger.json: install-swagger
 	swagger generate spec -o ./swagger.json --scan-models
 
 requests: swagger.json
-	go build cmd/main.go & go run cmd/main.go
+	go build .
 
 clean:
 	rm -rf swagger.json 
