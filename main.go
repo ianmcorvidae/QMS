@@ -11,9 +11,6 @@ import (
 // for convenience.
 func buildLoggerEntry() *logrus.Entry {
 
-	// Enable logging the file name and line number.
-	logrus.SetReportCaller(true)
-
 	// Set the logging format to JSON because that's what Echo's middleware uses.
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
