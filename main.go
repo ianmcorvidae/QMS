@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/cyverse-de/echo-middleware/v2/log"
+	"github.com/cyverse/QMS/config"
 	"github.com/cyverse/QMS/server"
 	"github.com/sirupsen/logrus"
 )
@@ -26,5 +27,13 @@ func buildLoggerEntry() *logrus.Entry {
 
 func main() {
 	logger := log.NewLogger(buildLoggerEntry())
-	server.Init(logger)
+
+	// Load the configuration.
+	spec, err := config.LoadConfig()
+	if err != nil {
+		logger.Fatalf("unable to load the configuration: %s", err.Error())
+	}
+
+	// Initialize the server.
+	server.Init(logger, spec)
 }
