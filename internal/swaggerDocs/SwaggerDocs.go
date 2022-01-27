@@ -24,14 +24,14 @@ import (
 type plansResponseWrapper struct {
 	// All the plans
 	// in: body
-	Body []model.Plans
+	Body []model.Plan
 }
 
 // swagger:parameters listPlansByID
 type plansIDParameter struct {
 	//in: path
 	//required:true
-	PlanID string `json:"plan_id`
+	PlanID string `json:"plan_id"`
 }
 
 //Users
@@ -49,21 +49,21 @@ type UserPlansResponseWrapper struct {
 type UsersPlansUsernameParameter struct {
 	//in: path
 	//required:true
-	UserName string `json:"username`
+	UserName string `json:"username"`
 }
 
 // swagger:parameters listAllUserQuotaByID
 type UserAllQuotaUsernameParameter struct {
 	//in: path
 	//required:true
-	UserName string `json:"username`
+	UserName string `json:"username"`
 }
 
 // swagger:parameters listUserQuotaByID
 type UserQuotaUsernameQuotaIdParameter struct {
 	//in: path
 	//required:true
-	UserName string `json:"username`
+	UserName string `json:"username"`
 	//in: path
 	//required:true
 	QuotaID string `json:"quotaid"`
@@ -73,5 +73,5 @@ type UserQuotaUsernameQuotaIdParameter struct {
 type UserUserUsageDetailsUsernameParameter struct {
 	//in: path
 	//required:true
-	UserName string `json:"username`
+	UserName string `json:"username"`
 }

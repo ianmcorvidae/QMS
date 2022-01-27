@@ -199,7 +199,7 @@ func (s Server) UpdateUserQuota(ctx echo.Context) error {
 	s.GORMDB.Debug().Find(&user, "user_name=?", username)
 	userID := *user.ID
 
-	var plan = model.Plans{Name: planname}
+	var plan = model.Plan{Name: planname}
 	s.GORMDB.Debug().Find(&plan, "name=?", planname)
 	planId := *plan.ID
 

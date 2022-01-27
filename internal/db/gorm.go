@@ -28,7 +28,7 @@ func MigrateTables(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.Plans{})
+	err = db.AutoMigrate(&model.Plan{})
 	if err != nil {
 		return err
 	}
