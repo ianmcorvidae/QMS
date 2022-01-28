@@ -1,0 +1,26 @@
+name: "skaffold-build"
+on:
+  push:
+    branches:
+      - main
+jobs:
+  pipiline:
+    name: Skaffold Pipiline
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Login to the Docker registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Run Skaffold pipeline as action
+        uses: hiberbee/github-action-skaffold@1.12.0
+        with:
+          command: build
+          repository: ${{ secrets.DOCKER_REGISTRY }}/qms
+          skaffold-version: "1.35.2"
