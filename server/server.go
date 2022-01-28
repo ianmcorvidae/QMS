@@ -3,21 +3,18 @@ package server
 import (
 	"fmt"
 
+	"github.com/cyverse-de/echo-middleware/v2/log"
+	"github.com/cyverse/QMS/config"
 	"github.com/cyverse/QMS/internal/controllers"
 	"github.com/cyverse/QMS/internal/db"
-	"github.com/labstack/gommon/log"
 )
 
-func Init() {
-
-	e := InitRouter()
+func Init(logger *log.Logger, spec *config.Specification) {
+	e := InitRouter(logger)
 
 	// Establish the database connection.
-	log.Info("establishing the database connection")
-
-	databaseURI := "postgres://postgres:password@localhost:54320/qmsdb?sslmode=disable" //cfg.GetString("notifications.db.uri")
-
-	db, gormdb, err := db.Init("postgres", databaseURI)
+	logger.Info("establishing the database connection")
+	db, gormdb, err := db.Init("postgres", spec.DatabaseURI)
 	if err != nil {
 		e.Logger.Fatalf("service initialization failed: %s", err.Error())
 	}

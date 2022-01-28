@@ -20,3 +20,6 @@ vendor/
 
 # Go workspace file
 go.work
+
+# The generated OpenAPI specification.
+swagger.json

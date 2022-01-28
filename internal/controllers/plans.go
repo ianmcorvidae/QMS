@@ -15,7 +15,7 @@ import (
 //   404: RootResponse
 
 func (s Server) GetAllPlans(ctx echo.Context) error {
-	data := []model.Plans{}
+	data := []model.Plan{}
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -34,7 +34,7 @@ func (s Server) GetPlansForID(ctx echo.Context) error {
 	if plan_id == "" {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
 	}
-	data := model.Plans{}
+	data := model.Plan{}
 	err := s.GORMDB.Debug().Where("id=@id", sql.Named("id", plan_id)).Find(&data).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -53,7 +53,7 @@ type Plan struct {
 
 func (s Server) AddPlans(ctx echo.Context) error {
 	id := "2e146110-7bf1-11ec-90d6-0242ac120003"
-	var req = model.Plans{ID: &id, Name: "test1", Description: "Basic Plan"}
+	var req = model.Plan{ID: &id, Name: "test1", Description: "Basic Plan"}
 	err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))

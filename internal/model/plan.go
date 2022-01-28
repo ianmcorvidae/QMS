@@ -6,13 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// Plans define the structure for an Api Plan.
+// Plan defines the structure for an Api Plan.
 // swagger:model
-type Plans struct {
+type Plan struct {
 	//The id for the plan
 	// in: path
 	//required: true
-	ID *string `gorm:"type:uuiddefault:uuid_generate_v1()" json:"id"`
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	// The Name for the plan
 	//required: true
 	Name string `gorm:"not null;unique" json:"name"`
@@ -23,15 +23,11 @@ type Plans struct {
 
 }
 
-func (p *Plans) TableName() string {
-	return "plans"
-}
-
 // PlanQuotaDefaults define the structure for an Api Plan and Quota.
 // swagger:model
 type PlanQuotaDefaults struct {
 	gorm.Model
-	ID             *string       `gorm:"type:uuid" json:"id"`
+	ID             *string       `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	PlanID         *string       `gorm:"type:uuid;not null" json:"-"`
 	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
 	QuotaValue     float64       `gorm:"not null"`

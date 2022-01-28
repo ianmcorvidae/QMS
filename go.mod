@@ -3,9 +3,9 @@ module github.com/cyverse/QMS
 go 1.17
 
 require (
-	github.com/cyverse-de/echo-middleware v0.1.0
+	github.com/cyverse-de/echo-middleware/v2 v2.0.1
 	github.com/labstack/echo v3.3.10+incompatible
-	github.com/labstack/gommon v0.3.1
+	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	gorm.io/driver/postgres v1.2.2
@@ -23,6 +23,7 @@ require (
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

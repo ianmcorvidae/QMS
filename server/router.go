@@ -1,18 +1,18 @@
 package server
 
 import (
+	"github.com/cyverse-de/echo-middleware/v2/log"
 	"github.com/cyverse/QMS/internal/controllers"
-	"github.com/cyverse/QMS/internal/log"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-func InitRouter() *echo.Echo {
+func InitRouter(logger *log.Logger) *echo.Echo {
 	// Create the web server.
 	e := echo.New()
 
 	// Set a custom logger.
-	e.Logger = log.Logger{Entry: log.InitLogger(true)}
+	e.Logger = logger
 
 	// Add middleware.
 	e.Use(middleware.Logger())
