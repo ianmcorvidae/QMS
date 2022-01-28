@@ -117,7 +117,7 @@ func (s Server) GetUserAllQuotas(ctx echo.Context) error {
 //   404: RootResponse
 //
 func (s Server) GetUserQuotaDetails(ctx echo.Context) error {
-	quotaid := ctx.Param("quotaid")
+	quotaid := ctx.Param("quotaId")
 	if quotaid == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid quota Id", http.StatusBadRequest))
 	}

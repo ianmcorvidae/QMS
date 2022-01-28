@@ -93,3 +93,15 @@ func (s Server) AddUserPlanDetails(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
+
+func (s Server) AddQuota(ctx echo.Context) error {
+	// id := "6b858690-7cd8-11ec-90d6-0242ac120003"
+	userPlanID := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
+	resourceTypeID := "1783e71c-7cb5-11ec-90d6-0242ac120003"
+	var req = model.Quotas{UserPlanID: &userPlanID, Quota: 1000, ResourceTypeID: &resourceTypeID}
+	err := s.GORMDB.Debug().Create(&req).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+	}
+	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+}

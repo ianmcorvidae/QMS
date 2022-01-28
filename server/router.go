@@ -77,7 +77,7 @@ func RegisterHandlers(s controllers.Server) {
 
 	// view all the plan details along with usage and quotas
 	users.GET("/:username/quotas", s.GetUserAllQuotas)
-	// users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
+	users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
 	// what if the users have multile palms and wants to look at a particular plan
 	// users.GET("/:username/usages", s.GetUserUsageDetails)
 
@@ -97,5 +97,6 @@ func RegisterHandlers(s controllers.Server) {
 	v1.POST("/resources/add", s.AddResourceType)
 	v1.POST("/planquota/add", s.AddPlanQuotaDefault)
 	v1.POST("/Userplan/add", s.AddUserPlanDetails)
+	v1.POST("/quotas/add", s.AddQuota)
 
 }
