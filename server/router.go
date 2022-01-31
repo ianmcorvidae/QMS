@@ -65,19 +65,19 @@ func RegisterHandlers(s controllers.Server) {
 	//Plans
 	plans := v1.Group("/plans")
 	// plans.GET("/", s.GetAllPlans)
-	plans.GET("/p/:plan_id", s.GetPlansForID)
+	plans.GET("/:plan_id", s.GetPlansForID)
 	// should the user be able to view plans using plan ID
-	plans.POST("/", s.AddPlans)
+	plans.POST("/:plan_name/:description/add", s.AddPlans)
 	//Users
 	//
 	users := v1.Group("/users")
-	users.POST("/add", s.AddUsers)
+	users.POST("/:user_name/add", s.AddUsers)
 
 	users.GET("/:username/plan", s.GetUserPlanDetails)
 
 	// view all the plan details along with usage and quotas
 	users.GET("/:username/quotas", s.GetUserAllQuotas)
-	users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
+	// users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
 	// what if the users have multile palms and wants to look at a particular plan
 	// users.GET("/:username/usages", s.GetUserUsageDetails)
 
@@ -94,9 +94,10 @@ func RegisterHandlers(s controllers.Server) {
 
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
-	v1.POST("/resources/add", s.AddResourceType)
+	v1.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
 	v1.POST("/planquota/add", s.AddPlanQuotaDefault)
-	v1.POST("/Userplan/add", s.AddUserPlanDetails)
-	v1.POST("/quotas/add", s.AddQuota)
+	v1.POST("/:user_name/Userplan/:plan_name/add", s.AddUserPlanDetails)
+	v1.POST("users/:user_name/quotas/add", s.AddQuota)
+	v1.POST("/usages/add", s.AddQuota)
 
 }

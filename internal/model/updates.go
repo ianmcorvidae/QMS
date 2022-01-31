@@ -26,12 +26,12 @@ func (tm *TrackedMetrics) TableName() string {
 
 type Updates struct {
 	gorm.Model
-	ID               string    `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
-	ValueType        string    `gorm:"column:value_type;type:varchar(100)"`
-	Value            float64   `gorm:"coumn:value;type:numeric"`
-	UpdatedBy        string    `gorm:"column:updated_by;type:varchar(100)"`
-	EffectiveDate    time.Time `gorm:"column:effective_date;type:date"`
-	LastModifiedBy   string    `gorm:"column:last_modified_by;varchar(100)"`
+	ID               *string   `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+	ValueType        string    `gorm:"not null;unique" json:"value_type"`
+	Value            float64   `gorm:"not null;unique" json:"value"`
+	UpdatedBy        string    `gorm:"not null" json:"updated_by"`
+	EffectiveDate    time.Time `gorm:"json:effective_date;type:date"`
+	LastModifiedBy   string    `gorm:"json:last_modified_by;varchar(100)"`
 	OpID             string
 	UpdateOperations UpdateOperations `gorm:"foreignKey:OpID;references:ID;"`
 	ResourceTypeID   string

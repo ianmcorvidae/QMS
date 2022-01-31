@@ -52,8 +52,16 @@ type Plan struct {
 }
 
 func (s Server) AddPlans(ctx echo.Context) error {
-	id := "2e146110-7bf1-11ec-90d6-0242ac120003"
-	var req = model.Plan{ID: &id, Name: "test1", Description: "Basic Plan"}
+
+	planname := ctx.Param("plan_name")
+	if planname == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
+	}
+	description := ctx.Param("description")
+	if description == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
+	}
+	var req = model.Plan{Name: planname, Description: description}
 	err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -61,9 +69,18 @@ func (s Server) AddPlans(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
 func (s Server) AddResourceType(ctx echo.Context) error {
-	id := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
-	var req = model.ResourceTypes{ID: &id, Name: "STORAGE", Unit: "Terabytes"}
-	err := s.GORMDB.Debug().Create(&req).Error
+	// id := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
+
+	name := ctx.Param("resource_name")
+	if name == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Resource Name", http.StatusBadRequest))
+	}
+	unit := ctx.Param("resource_unit")
+	if unit == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Resource Name", http.StatusBadRequest))
+	}
+	var resource_type = model.ResourceTypes{Name: name, Unit: unit}
+	err := s.GORMDB.Debug().Create(&resource_type).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
@@ -82,11 +99,25 @@ func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 }
 
 func (s Server) AddUserPlanDetails(ctx echo.Context) error {
-	id := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
-	planID := "2e146110-7bf1-11ec-90d6-0242ac120003"
-	userID := "fbdd1f8c-52c1-11ec-bf63-0242ac130002"
 
-	var req = model.UserPlans{ID: &id, UserID: &userID, PlanID: &planID}
+	planname := ctx.Param("plan_name")
+	if planname == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
+	}
+
+	username := ctx.Param("user_name")
+	if username == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+	}
+	var user = model.Users{UserName: username}
+	s.GORMDB.Debug().Find(&user, "user_name=?", username)
+	userID := *user.ID
+
+	var plan = model.Plan{Name: planname}
+	s.GORMDB.Debug().Find(&plan, "name=?", planname)
+	planId := *plan.ID
+
+	var req = model.UserPlans{AddedBy: "Admin", UserID: &userID, PlanID: &planId}
 	err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -96,9 +127,26 @@ func (s Server) AddUserPlanDetails(ctx echo.Context) error {
 
 func (s Server) AddQuota(ctx echo.Context) error {
 	// id := "6b858690-7cd8-11ec-90d6-0242ac120003"
-	userPlanID := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
-	resourceTypeID := "1783e71c-7cb5-11ec-90d6-0242ac120003"
-	var req = model.Quotas{UserPlanID: &userPlanID, Quota: 1000, ResourceTypeID: &resourceTypeID}
+	username := ctx.Param("user_name")
+	if username == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+	}
+	resourceName := ctx.Param("resource_name")
+	if resourceName == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
+	}
+	var resource = model.ResourceTypes{Name: resourceName}
+	s.GORMDB.Debug().Find(&resource, "name=?", resourceName)
+	resourceID := *resource.ID
+
+	var user = model.Users{UserName: username}
+	s.GORMDB.Debug().Find(&user, "user_name=?", username)
+	userID := *user.ID
+	var userPlan = model.UserPlans{}
+	s.GORMDB.Debug().Find(&userPlan, "user_id=?", userID)
+	userPlanId := *userPlan.ID
+
+	var req = model.Quotas{UserPlanID: &userPlanId, Quota: 1000, ResourceTypeID: &resourceID}
 	err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))

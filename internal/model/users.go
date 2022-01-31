@@ -10,7 +10,7 @@ type Users struct {
 	// The Name for the User.
 	// in: path
 	//required: true
-	UserName string `gorm:"not null;unique" json:"username"`
+	UserName string `gorm:"not null;unique" json:"user_name"`
 }
 
 func (u *Users) TableName() string {

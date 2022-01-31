@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/cyverse/QMS/internal/model"
@@ -67,12 +66,11 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	join resource_types on resource_types.id=quotas.resource_type_id
 	join users on users.id = user_plans.user_id
 	where 
-	cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
-	and users.username=?`, username).Scan(&plandata).Error
+	users.username=?`, username).Scan(&plandata).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
+	return ctx.JSON(http.StatusOK, model.SuccessResponse(&plandata, http.StatusOK))
 }
 
 // swagger:route GET /users/{UserName}/quotas users listAllUserQuotaByID
@@ -175,8 +173,12 @@ func (s Server) GetUserUsageDetails(ctx echo.Context) error {
 }
 
 func (s Server) AddUsers(ctx echo.Context) error {
-	id := "6b858690-7cd8-11ec-90d6-0242ac120003"
-	var req = model.Users{ID: &id, UserName: "UserTest1"}
+	username := ctx.Param("user_name")
+	if username == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+	}
+
+	var req = model.Users{UserName: username}
 	err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -189,7 +191,6 @@ func (s Server) UpdateUserQuota(ctx echo.Context) error {
 	if planname == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
 	}
-	fmt.Println("===================>", planname)
 
 	username := ctx.Param("user_name")
 	if username == "" {
@@ -209,11 +210,20 @@ func (s Server) UpdateUserQuota(ctx echo.Context) error {
 	if *userPlan.PlanID == planId {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("User cannot be updated with the existing plan: "+planname, http.StatusInternalServerError))
 	}
-	// var req = model.UserPlans{ID: &userPlanID, UserID: &userID, PlanID: &planId}
+
 	errdb := s.GORMDB.Debug().Model(&userPlan).Where("id=?", userPlanId).Update("plan_id", planId).Error
-	// userName := req.User.UserName
+
 	if errdb != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(errdb.Error(), http.StatusInternalServerError))
+	}
+	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+}
+func (s Server) AddUsages(ctx echo.Context) error {
+	userPlanID := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
+	var req = model.Usages{Usage: 5000, AddedBy: "Admin", UserPlanID: userPlanID, ResourceTypeID: "230d8bd2-7cc5-11ec-90d6-0242ac120003"}
+	err := s.GORMDB.Debug().Create(&req).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
