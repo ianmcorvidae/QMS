@@ -21,18 +21,18 @@ import (
 
 // A list of Responses for Plans.
 // swagger:response plansResponse
-type plansResponseWrapper struct {
-	// All the plans
-	// in: body
-	Body []model.Plan
-}
+// type plansResponseWrapper struct {
+// 	// All the plans
+// 	// in: body
+// 	Body []model.Plan
+// }
 
 // swagger:parameters listPlansByID
-type plansIDParameter struct {
-	//in: path
-	//required:true
-	PlanID string `json:"plan_id"`
-}
+// type plansIDParameter struct {
+// 	//in: path
+// 	//required:true
+// 	PlanID string `json:"plan_id"`
+// }
 
 //Users
 
