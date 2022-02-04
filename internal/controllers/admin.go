@@ -95,36 +95,33 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
 
-	fmt.Printf("%+v\n", req)
-
 	effectivedate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
 
-	now := time.Now().Format("2006-01-02")
-
 	usageDetails := []model.Usages{}
 
 	if err = s.GORMDB.Debug().Raw(
 		`
-			SELECT usages.* FROM user_plans
+			SELECT usages.* 
+			FROM user_plans
 			JOIN usages ON user_plans.id=usages.user_plan_id
 			JOIN quotas ON user_plans.id=quotas.user_plan_id
 			JOIN resource_types ON resource_types.id=quotas.resource_type_id
 			JOIN users ON users.id = user_plans.user_id
-			WHERE user_plans.effective_start_date <=?
-			AND user_plans.effective_end_date >=?
+			WHERE user_plans.effective_start_date <= CURRENT_DATE
+			AND user_plans.effective_end_date >= CURRENT_DATE
 			AND users.user_name = ?
 			AND resource_types.name = ?
 		`,
-		now+"T00:00:00",
-		now+"T23:59:59",
 		req.UserName,
 		req.ResourceType,
 	).Scan(&usageDetails).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+
+	fmt.Printf("%+v\n", usageDetails)
 
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
