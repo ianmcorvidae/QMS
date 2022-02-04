@@ -32,7 +32,7 @@ type UpdateUsagesReq struct {
 	UserName             string  `json:"username"`
 	ResourceType         string  `json:"resource_type"`
 	UpdateType           string  `json:"update_type"`
-	UsageAdjustmentValue float64 `json:"usgae_adjustment_value"`
+	UsageAdjustmentValue float64 `json:"usage_adjustment_value"`
 	EffectiveDate        string  `json:"effective_date"`
 }
 
@@ -86,14 +86,17 @@ func (s Server) UpdateQuota(ctx echo.Context) error {
 }
 
 func (s Server) UpdateUsages(ctx echo.Context) error {
-	req := UpdateUsagesReq{}
-	fmt.Println(req, "================================>")
+	var (
+		err error
+		req UpdateUsagesReq
+	)
 
-	err := ctx.Bind(&req)
-	fmt.Println(req, "================================>")
-	if err != nil {
+	if err = ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
+
+	fmt.Printf("%+v\n", req)
+
 	effectivedate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
@@ -103,27 +106,36 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 
 	usageDetails := []model.Usages{}
 
-	err = s.GORMDB.Debug().Raw(`select usages.* from user_plans 		
-		join usages on user_plans.id=usages.user_plan_id 
-		join quotas on user_plans.id=quotas.user_plan_id 
-		join resource_types on resource_types.id=quotas.resource_type_id
-		join users on users.id = user_plans.user_id
-		where 
-		user_plans.effective_start_date <=? and 
-		user_plans.effective_end_date >=? and
-		users.username = ? and 
-		resource_types.name = ?`, now+"T00:00:00", now+"T23:59:59", req.UserName, req.ResourceType).Scan(&usageDetails).Error
-	if err != nil {
+	if err = s.GORMDB.Debug().Raw(
+		`
+			SELECT usages.* FROM user_plans
+			JOIN usages ON user_plans.id=usages.user_plan_id
+			JOIN quotas ON user_plans.id=quotas.user_plan_id
+			JOIN resource_types ON resource_types.id=quotas.resource_type_id
+			JOIN users ON users.id = user_plans.user_id
+			WHERE user_plans.effective_start_date <=?
+			AND user_plans.effective_end_date >=?
+			AND users.user_name = ?
+			AND resource_types.name = ?
+		`,
+		now+"T00:00:00",
+		now+"T23:59:59",
+		req.UserName,
+		req.ResourceType,
+	).Scan(&usageDetails).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
 		value := req.UsageAdjustmentValue
+
 		if req.UpdateType == "sub" {
 			value = -1 * value
 		}
+
 		usagerec.Usage += value
+
 		err := s.GORMDB.Debug().Updates(&usagerec).Error
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
@@ -192,7 +204,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 			JOIN plans ON plans.id = user_plans.plan_id
 			JOIN usages ON user_plans.id=usages.user_plan_id
 			JOIN quotas ON user_plans.id=quotas.user_plan_id
-			JOIN resource_types ON resource_types.id=quotas.resource_type_is
+			JOIN resource_types ON resource_types.id=quotas.resource_type_id
 			JOIN users ON users.id = user_plans.user_id
 			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
 		` + usernamefilter + resourcefilter,
