@@ -192,7 +192,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 			JOIN plans ON plans.id = user_plans.plan_id
 			JOIN usages ON user_plans.id=usages.user_plan_id
 			JOIN quotas ON user_plans.id=quotas.user_plan_id
-			JOIN resource_types ON resource_types.id=quotas.resource_type_is
+			JOIN resource_types ON resource_types.id=quotas.resource_type_id
 			JOIN users ON users.id = user_plans.user_id
 			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
 		` + usernamefilter + resourcefilter,
