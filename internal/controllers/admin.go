@@ -164,13 +164,15 @@ func (s Server) GetAllActiveQuotas(ctx echo.Context) error {
 }
 
 func (s Server) GetAllActiveUsage(ctx echo.Context) error {
+	var err error
+
 	resource := ctx.QueryParam("resource")
 	resourcefilter := ""
 	if resource != "" {
 		resourcefilter = ` and resource_types.name = '` + resource + `'`
 	}
-	username := ctx.QueryParam("username")
 
+	username := ctx.QueryParam("username")
 	usernamefilter := ""
 	if username != "" {
 		usernamefilter = ` and users.username = '` + username + `'`
@@ -178,17 +180,26 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 
 	plandata := []AdminUsageDetails{}
 
-	err := s.GORMDB.Debug().Raw(`select users.username as user_name, users.id as user_id, plans.name as plan_name, usages.usage, resource_types.unit, resource_types.name as resource_name from user_plans 
-		join plans on plans.id = user_plans.plan_id 
-		join usages on user_plans.id=usages.user_plan_id 
-		join quotas on user_plans.id=quotas.user_plan_id 
-		join resource_types on resource_types.id=quotas.resource_type_id
-		join users on users.id = user_plans.user_id
-		where 
-		cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date` + usernamefilter + resourcefilter).Scan(&plandata).Error
-	if err != nil {
+	if err = s.GORMDB.Debug().Raw(
+		`
+			SELECT users.user_name,
+				users.id as user_id,
+				plans.name as plan_name,
+				usages.usage,
+				resource_types.unit,
+				resource_types.name as resource_name
+			FROM user_plans
+			JOIN plans ON plans.id = user_plans.plan_id
+			JOIN usages ON user_plans.id=usages.user_plan_id
+			JOIN quotas ON user_plans.id=quotas.user_plan_id
+			JOIN resource_types ON resource_types.id=quotas.resource_type_is
+			JOIN users ON users.id = user_plans.user_id
+			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
+		` + usernamefilter + resourcefilter,
+	).Scan(&plandata).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 
 }
