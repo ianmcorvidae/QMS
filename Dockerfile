@@ -8,7 +8,7 @@ WORKDIR /go/src/github.com/cyverse-de/QMS
 COPY . .
 RUN make
 
-FROM scratch
+FROM busybox
 
 WORKDIR /app
 
