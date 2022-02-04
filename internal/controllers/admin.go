@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -120,8 +119,6 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	).Scan(&usageDetails).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
-
-	fmt.Printf("%+v\n", usageDetails)
 
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
