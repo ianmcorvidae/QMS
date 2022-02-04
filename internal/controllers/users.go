@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cyverse/QMS/internal/model"
@@ -40,6 +41,9 @@ type UsageDetails struct {
 	ResourceName string
 	Usage        string
 	Unit         string
+}
+type result struct {
+	ID string
 }
 
 // swagger:route GET /users/{UserName}/plan users listUserPlansByID
@@ -177,12 +181,25 @@ func (s Server) AddUsers(ctx echo.Context) error {
 	if username == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
-
-	var req = model.Users{UserName: username}
-	err := s.GORMDB.Debug().Create(&req).Error
+	var user = model.Users{UserName: username}
+	err := s.GORMDB.Debug().Create(&user).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+	userID := *user.ID
+	var plan = model.Plan{Name: "Basic"}
+	s.GORMDB.Debug().Find(&plan, "name=?", "Basic")
+	planId := *plan.ID
+	var userPlan = model.UserPlans{AddedBy: "Admin", UserID: &userID, PlanID: &planId}
+	err = s.GORMDB.Debug().Create(&userPlan).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+	}
+	// userPlanId := userPlan.ID
+
+	// var quota = model.Quotas{}
+	// err = s.GORMDB.Debug().Create(&quota).Error
+
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
 
@@ -210,20 +227,36 @@ func (s Server) UpdateUserQuota(ctx echo.Context) error {
 	if *userPlan.PlanID == planId {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("User cannot be updated with the existing plan: "+planname, http.StatusInternalServerError))
 	}
-
 	errdb := s.GORMDB.Debug().Model(&userPlan).Where("id=?", userPlanId).Update("plan_id", planId).Error
-
 	if errdb != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(errdb.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+
 }
 func (s Server) AddUsages(ctx echo.Context) error {
-	userPlanID := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
-	var req = model.Usages{Usage: 5000, AddedBy: "Admin", UserPlanID: userPlanID, ResourceTypeID: "230d8bd2-7cc5-11ec-90d6-0242ac120003"}
-	err := s.GORMDB.Debug().Create(&req).Error
+	// userPlanID := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
+	// userName := "Test4"
+	// ctx.Param("user_name")
+	// if userName == "" {
+	// 	return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+	// }
+	// var user = model.Users{}
+	// s.GORMDB.Debug().Find(&user, "user_name=?", userName)
+	// userId := *user.ID
+	// var userPlan = model.UserPlans{}
+	// s.GORMDB.Debug().Find(&userPlan, "user_id=?", userId)
+	// userPlanID := *userPlan.ID
+
+	var res = result{}
+	err := s.GORMDB.Table("user_plans").Select("user_plans.id").Joins("JOIN users on user_plans.user_id=users.id").Scan(&res).Error
+
+	// var req = model.Usages{Usage: 5000, AddedBy: "Admin", UserPlanID: &userPlanID, ResourceTypeID: "230d8bd2-7cc5-11ec-90d6-0242ac120003"}
+	// err := s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+	fmt.Println(res.ID)
+
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }

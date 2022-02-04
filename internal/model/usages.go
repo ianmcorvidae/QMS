@@ -11,7 +11,7 @@ type Usages struct {
 	//The id for the plan.
 	// in: path
 	//required: true
-	ID string `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
+	ID *string `gorm:"column:id;primaryKey;type:uuid;default:uuid_generate_v1()"`
 	//The current usage of the resource.
 	// in: path
 	//required: true
@@ -27,12 +27,12 @@ type Usages struct {
 	//The UserPlanID for the Usages.
 	// in: path
 	//required: true
-	UserPlanID string    `gorm:"unique"`
+	UserPlanID *string   `gorm:"unique"`
 	UserPlans  UserPlans `gorm:"foreignKey:UserPlanID;references:ID;"`
 	//The ResourceTypeID for the Usages.
 	// in: path
 	//required: true
-	ResourceTypeID string        `gorm:"unique"`
+	ResourceTypeID *string       `gorm:"unique"`
 	ResourceTypes  ResourceTypes `gorm:"foreignKey:ResourceTypeID;references:ID"`
 }
 

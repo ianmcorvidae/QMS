@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/cyverse/QMS/internal/model"
@@ -43,54 +41,51 @@ type UpdateQuotaReq struct {
 
 // func GetQuota(db *sql.DB, name string)
 
-func (s Server) UpdateQuota(ctx echo.Context) error {
-	quotaid := ctx.Param("quotaid")
-	if quotaid == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid QuotaID", http.StatusBadRequest))
-	}
+// func (s Server) UpdateQuota(ctx echo.Context) error {
+// 	quota_name := ctx.Param("quota_name")
+// 	if quota_name == "" {
+// 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid QuotaID", http.StatusBadRequest))
+// 	}
 
-	req := UpdateQuotaReq{}
-	err := ctx.Bind(&req)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
-	}
+// 	// req := UpdateQuotaReq{}
+// 	// err := ctx.Bind(&req)
+// 	// if err != nil {
+// 	// 	return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
+// 	// }
 
-	quota := model.Quotas{}
+// 	// quota := model.Quotas{}
 
-	err = s.GORMDB.Debug().Where("id = ?", quotaid).Find(&quota).Error
-	if err != nil {
-		if strings.Contains(err.Error(), "invalid input") {
-			return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
-		}
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
-	}
+// 	// err = s.GORMDB.Debug().Where("id = ?", quotaid).Find(&quota).Error
+// 	// if err != nil {
+// 	// 	// if strings.Contains(err.Error(), "invalid input") {
+// 	// 	// 	return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
+// 	// 	// }
+// 	// 	return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+// 	// }
 
-	if *quota.ID != quotaid {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Quota Not Found", http.StatusBadRequest))
-	}
+// 	// if *quota.ID != quotaid {
+// 	// 	return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Quota Not Found", http.StatusBadRequest))
+// 	// }
 
-	value := req.Value
-	if req.Type == "sub" {
-		value = -1 * value
-	}
+// 	// value := req.Value
+// 	// if req.Type == "sub" {
+// 	// 	value = -1 * value
+// 	// }
 
-	quota.Quota += value
+// 	// quota.Quota += value
 
-	err = s.GORMDB.Debug().Updates(&quota).Error
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
-	}
+// 	// err = s.GORMDB.Debug().Updates(&quota).Error
+// 	// if err != nil {
+// 	// 	return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+// 	// }
 
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+// 	// return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 
-}
+// }
 
 func (s Server) UpdateUsages(ctx echo.Context) error {
 	req := UpdateUsagesReq{}
-	fmt.Println(req, "================================>")
-
 	err := ctx.Bind(&req)
-	fmt.Println(req, "================================>")
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
@@ -149,7 +144,7 @@ func (s Server) GetAllActiveQuotas(ctx echo.Context) error {
 
 	plandata := []AdminQuotaDetails{}
 
-	err := s.GORMDB.Debug().Raw(`select users.username as user_name, users.id as user_id, plans.name as plan_name, quotas.quota, resource_types.name as resource_name, resource_types.unit from user_plans
+	err := s.GORMDB.Debug().Raw(`select users.user_name as user_name, users.id as user_id, plans.name as plan_name, quotas.quota, resource_types.name as resource_name, resource_types.unit from user_plans
 	join plans on plans.id = user_plans.plan_id	
 	join quotas on user_plans.id=quotas.user_plan_id
 	join resource_types on resource_types.id=quotas.resource_type_id
@@ -200,7 +195,7 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	now := time.Now().Format("2006-01-02")
 
 	plandata := []PlanDetails{}
-	err := s.GORMDB.Raw(`select plans.name,usage.usage,quotas.quota,resource_types.unit from
+	err := s.GORMDB.Raw(`select plans.name,usages.usage,quotas.quota,resource_types.unit from
 	user_plans
 	join plans on plans.id=user_plans.plan_id
 	join usages on user_plans.id=usages.user_plan_id
@@ -217,15 +212,3 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 
 }
-
-// func (s Server) AddQuotas(ctx echo.Context) error {
-// 	// id := "230d8bd2-7cc5-11ec-90d6-0242ac120003"
-// 	planID := "2e146110-7bf1-11ec-90d6-0242ac120003"
-// 	resourceTypeID := "1783e71c-7cb5-11ec-90d6-0242ac120003"
-// 	var req = model.Quotas{Quota: 1000, AddedBy: "Admin", UserPlanID: "", ResourceTypeID: &resourceTypeID}
-// 	err := s.GORMDB.Debug().Create(&req).Error
-// 	if err != nil {
-// 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
-// 	}
-// 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
-// }

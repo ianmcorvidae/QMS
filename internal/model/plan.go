@@ -31,6 +31,7 @@ type PlanQuotaDefaults struct {
 	PlanID         *string       `gorm:"type:uuid;not null" json:"-"`
 	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
 	QuotaValue     float64       `gorm:"not null"`
+	Plan           Plan          `json:"plan"`
 	ResourceType   ResourceTypes `json:"resource_type"`
 }
 

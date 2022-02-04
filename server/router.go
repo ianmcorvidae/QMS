@@ -64,19 +64,21 @@ func RegisterHandlers(s controllers.Server) {
 	v1.GET("/", s.RootHandler)
 	//Plans
 	plans := v1.Group("/plans")
+	//user
 	// plans.GET("/", s.GetAllPlans)
 	plans.GET("/:plan_id", s.GetPlansForID)
 	// should the user be able to view plans using plan ID
-	plans.POST("/:plan_name/:description/add", s.AddPlans)
-	//Users
-	//
+	plans.POST("/:plan_name/:description/add", s.AddPlan)
+	//Adim
+	//add in the body.
+	//Post/add
 	users := v1.Group("/users")
-	users.POST("/:user_name/add", s.AddUsers)
 
+	//add an user to basic plan.
 	users.GET("/:username/plan", s.GetUserPlanDetails)
 
 	// view all the plan details along with usage and quotas
-	users.GET("/:username/quotas", s.GetUserAllQuotas)
+	// users.GET("/:username/quotas", s.GetUserAllQuotas)
 	// users.GET("/:username/quotas/:quotaId", s.GetUserQuotaDetails)
 	// what if the users have multile palms and wants to look at a particular plan
 	// users.GET("/:username/usages", s.GetUserUsageDetails)
@@ -85,19 +87,28 @@ func RegisterHandlers(s controllers.Server) {
 	admin := v1.Group("/admin")
 	// admin.GET("/users", s.GetAllUsers)
 	// admin.GET("/users/:username", s.GetAllUserActivePlans)
-	admin.GET("/quotas", s.GetAllActiveQuotas)
+	// admin.GET("/quotas", s.GetAllActiveQuotas)
 
-	admin.PUT("/quotas/:quotaid", s.UpdateQuota)
+	// admin.PUT("/quotas/:quota_name", s.UpdateQuota)
 	admin.GET("/usages", s.GetAllActiveUsage)
+	//plans and usages
 	admin.POST("/usages", s.UpdateUsages)
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserQuota)
 
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
-	v1.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
-	v1.POST("/planquota/add", s.AddPlanQuotaDefault)
-	v1.POST("/:user_name/Userplan/:plan_name/add", s.AddUserPlanDetails)
-	v1.POST("users/:user_name/quotas/add", s.AddQuota)
-	v1.POST("/usages/add", s.AddQuota)
+	//Route to add admin. when a user is added, the user is automatically assigned Basic plan.
+	admin.POST("/:user_name", s.AddUsers)
+	//Route to add Resources.
+	admin.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
+	//TO add Default Quota values for a plan.
+	admin.POST("/planQuotaDefault", s.AddPlanQuotaDefault)
+	//Update the plan for a particular user.
+	admin.PUT("/:user_name/Userplan/:plan_name", s.UpdateUserPlanDetails)
+
+	admin.POST("/users/:user_name/:resource_name/add", s.AddQuota)
+	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserQuota)
+	admin.POST("/usages/add", s.AddUsages)
+	//usage/:username/:resource_name/:value
 
 }
