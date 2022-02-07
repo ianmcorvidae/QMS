@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/cyverse/QMS/internal/model"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // swagger:route GET /plans plans listPlans

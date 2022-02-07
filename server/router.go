@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/cyverse-de/echo-middleware/v2/log"
 	"github.com/cyverse/QMS/internal/controllers"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func InitRouter(logger *log.Logger) *echo.Echo {

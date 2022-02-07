@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/cyverse-de/echo-middleware/v2 v2.0.1
-	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
@@ -34,8 +33,14 @@ require (
 
 require (
 	github.com/cyverse-de/dbutil v0.0.0-20210914212612-2b941729c90a
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/lib/pq v1.10.2
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
+)
+
+require github.com/labstack/echo/v4 v4.6.1
+
+require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
 )
