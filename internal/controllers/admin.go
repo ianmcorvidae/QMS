@@ -141,31 +141,61 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 }
 
 func (s Server) GetAllActiveQuotas(ctx echo.Context) error {
+	var err error
+
 	resource := ctx.QueryParam("resource")
-	resourcefilter := ""
-	if resource != "" {
-		resourcefilter = ` and resource_types.name = '` + resource + `'`
-	}
 	username := ctx.QueryParam("username")
-	usernamefilter := ""
-	if username != "" {
-		usernamefilter = ` and users.username = '` + username + `'`
-	}
-	now := time.Now().Format("2006-01-02")
 
 	plandata := []AdminQuotaDetails{}
 
-	err := s.GORMDB.Debug().Raw(`select users.username as user_name, users.id as user_id, plans.name as plan_name, quotas.quota, resource_types.name as resource_name, resource_types.unit from user_plans
-	join plans on plans.id = user_plans.plan_id	
-	join quotas on user_plans.id=quotas.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id = user_plans.user_id
-	where
-	user_plans.effective_start_date <=? and
-	user_plans.effective_end_date >=? `+usernamefilter+resourcefilter, now+"T00:00:00", now+"T23:59:59").Scan(&plandata).Error
+	selectedCols := []string{
+		"users.user_name",
+		"users.id AS user_id",
+		"plans.name AS plan_name",
+		"quotas.quota",
+		"resource_types.name AS resource_name",
+		"resource_types.unit",
+	}
+
+	tx := s.GORMDB.Debug().Table("user_plans").
+		Select(selectedCols).
+		Joins("JOIN plans ON user_plans.plan_id = plans.id").
+		Joins("JOIN quotas ON user_plans.id = quotas.user_plan_id").
+		Joins("JOIN resource_types ON resource_types.id = quotas.resource_type_id").
+		Joins("JOIN users ON users.id = user_plans.user_id").
+		Where("user_plans.effective_start_date <= CURRENT_DATE").
+		Where("user_plans.effective_end_date >= CURRENT_DATE")
+
+	if username != "" {
+		tx = tx.Where("users.user_name = ?", username)
+	}
+
+	if resource != "" {
+		tx = tx.Where("resource_types.name = ?", resource)
+	}
+
+	rows, err := tx.Rows()
+	defer rows.Close()
+
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
+
+	for rows.Next() {
+		var r AdminQuotaDetails
+		if err = rows.Scan(
+			&r.UserName,
+			&r.UserID,
+			&r.PlanName,
+			&r.Quota,
+			&r.ResourceName,
+			&r.Unit,
+		); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		}
+		plandata = append(plandata, r)
+	}
+
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
 
