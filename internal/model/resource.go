@@ -2,7 +2,7 @@ package model
 
 // ResourceTypes define the structure for ResourceTypes.
 // swagger:model
-type ResourceTypes struct {
+type ResourceType struct {
 	//The id for the Resource.
 	// in: path
 	//required: true
@@ -15,8 +15,4 @@ type ResourceTypes struct {
 	// in: path
 	//required: true
 	Unit string `gorm:"not null;unique" json:"unit"`
-}
-
-func (rt *ResourceTypes) TableName() string {
-	return "resource_types"
 }

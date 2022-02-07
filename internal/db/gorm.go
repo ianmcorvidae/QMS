@@ -20,11 +20,11 @@ func InitGORMConnection(db *sql.DB) (*gorm.DB, error) {
 }
 
 func MigrateTables(db *gorm.DB) error {
-	err := db.AutoMigrate(&model.Users{})
+	err := db.AutoMigrate(&model.User{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.ResourceTypes{})
+	err = db.AutoMigrate(&model.ResourceType{})
 	if err != nil {
 		return err
 	}
@@ -32,31 +32,31 @@ func MigrateTables(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.PlanQuotaDefaults{})
+	err = db.AutoMigrate(&model.PlanQuotaDefault{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.UserPlans{})
+	err = db.AutoMigrate(&model.UserPlan{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.Quotas{})
+	err = db.AutoMigrate(&model.Quota{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.UpdateOperations{})
+	err = db.AutoMigrate(&model.UpdateOperation{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.TrackedMetrics{})
+	err = db.AutoMigrate(&model.TrackedMetric{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.Updates{})
+	err = db.AutoMigrate(&model.Update{})
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&model.Usages{})
+	err = db.AutoMigrate(&model.Usage{})
 	if err != nil {
 		return err
 	}

@@ -25,23 +25,19 @@ type Plan struct {
 
 // PlanQuotaDefaults define the structure for an Api Plan and Quota.
 // swagger:model
-type PlanQuotaDefaults struct {
+type PlanQuotaDefault struct {
 	gorm.Model
-	ID             *string       `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	PlanID         *string       `gorm:"type:uuid;not null" json:"-"`
-	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
-	QuotaValue     float64       `gorm:"not null"`
-	Plan           Plan          `json:"plan"`
-	ResourceType   ResourceTypes `json:"resource_type"`
-}
-
-func (pqd *PlanQuotaDefaults) TableName() string {
-	return "plan_quota_defaults"
+	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+	PlanID         *string      `gorm:"type:uuid;not null" json:"-"`
+	ResourceTypeID *string      `gorm:"type:uuid;not null" json:"-"`
+	QuotaValue     float64      `gorm:"not null"`
+	Plan           Plan         `json:"plan"`
+	ResourceType   ResourceType `json:"resource_type"`
 }
 
 // UserPlans define the structure for the API User plans.
 // swagger:model
-type UserPlans struct {
+type UserPlan struct {
 	gorm.Model
 	//The id for the UserPlans.
 	// in: path
@@ -50,31 +46,26 @@ type UserPlans struct {
 	//The effective start date of the plan for the user.
 	// in: path
 	//required: false
-	EffectiveStartDate time.Time `gorm:"json:effective_start_date;type:date"`
+	EffectiveStartDate time.Time `gorm:"json:effective_start_date" type:"date"`
 	//The effective end date of the plan for the user.
 	// in: path
 	//required: false
-	EffectiveEndDate time.Time `gorm:"json:effective_end_date;type:date"`
+	EffectiveEndDate time.Time `gorm:"json:effective_end_date" type:"date"`
 	//Added by:.
 	// in: path
 	//required: false
-	AddedBy string `gorm:"json:added_by;type:varchar(100)"`
+	AddedBy string `gorm:"json:added_by"`
 	//The last modified of the plan for the user.
 	// in: path
 	//required: false
-	LastModifiedBy string `gorm:"json:last_modified_by;type:varchar(100)"`
+	LastModifiedBy string `gorm:"json:last_modified_by"`
 	//The UserID for the user.
 	// in: path
 	//required: true
 	UserID *string `gorm:"type:uuid;not null" json:"-"`
-	User   Users   `json:"users"`
-
+	User   User    `json:"users"`
 	// //The planID for the user.
 	// // in: path
 	// //required: true
 	PlanID *string `gorm:"type:uuid;not null" json:"-"`
-}
-
-func (up *UserPlans) TableName() string {
-	return "user_plans"
 }

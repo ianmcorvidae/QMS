@@ -6,7 +6,7 @@ import (
 
 // Quotas define the structure for an Api Plan and Quota.
 // swagger:model
-type Quotas struct {
+type Quota struct {
 	gorm.Model
 	//The id for the Quotas.
 	// in: path
@@ -27,15 +27,11 @@ type Quotas struct {
 	//The userPlanId for the Quota.
 	// in: path
 	//required: true
-	UserPlanID *string   `gorm:"type:uuid;not null" json:"-"`
-	UserPlan   UserPlans `json:"user_plans"`
+	UserPlanID *string  `gorm:"type:uuid;not null" json:"-"`
+	UserPlan   UserPlan `json:"user_plans"`
 	//The resourceTypeId for the Quota.
 	// in: path
 	//required: true
-	ResourceTypeID *string       `gorm:"type:uuid;not null" json:"-"`
-	ResourceType   ResourceTypes `json:"resource_types"`
-}
-
-func (q *Quotas) TableName() string {
-	return "quotas"
+	ResourceTypeID *string      `gorm:"type:uuid;not null" json:"-"`
+	ResourceType   ResourceType `json:"resource_types"`
 }

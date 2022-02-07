@@ -2,7 +2,7 @@ package model
 
 // Users define the structure of an User.
 // swagger:model
-type Users struct {
+type User struct {
 	//The id for the User.
 	// in: path
 	//required: true
@@ -11,8 +11,4 @@ type Users struct {
 	// in: path
 	//required: true
 	UserName string `gorm:"not null;unique" json:"user_name"`
-}
-
-func (u *Users) TableName() string {
-	return "users"
 }

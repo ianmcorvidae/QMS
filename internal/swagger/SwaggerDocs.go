@@ -42,7 +42,7 @@ import (
 type UserPlansResponseWrapper struct {
 	// All the plans
 	// in: body
-	Body []model.UserPlans
+	Body []model.UserPlan
 }
 
 // swagger:parameters listUserPlansByID
