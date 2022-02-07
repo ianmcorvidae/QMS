@@ -101,22 +101,16 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 
 	usageDetails := []model.Usages{}
 
-	if err = s.GORMDB.Debug().Raw(
-		`
-			SELECT usages.* 
-			FROM user_plans
-			JOIN usages ON user_plans.id=usages.user_plan_id
-			JOIN quotas ON user_plans.id=quotas.user_plan_id
-			JOIN resource_types ON resource_types.id=quotas.resource_type_id
-			JOIN users ON users.id = user_plans.user_id
-			WHERE user_plans.effective_start_date <= CURRENT_DATE
-			AND user_plans.effective_end_date >= CURRENT_DATE
-			AND users.user_name = ?
-			AND resource_types.name = ?
-		`,
-		req.UserName,
-		req.ResourceType,
-	).Scan(&usageDetails).Error; err != nil {
+	if err = s.GORMDB.Debug().
+		Joins("JOIN usages ON user_plans.id = usages.user_plan_id").
+		Joins("JOIN quotas ON user_plans.id = quotas.user_plan_id").
+		Joins("JOIN resource_types ON resource_types.id = quotas.resource_type_id").
+		Joins("JOIN users ON users.id = user_plans.user_id").
+		Where("user_plans.effective_start_date <= CURRENT_DATE").
+		Where("user_plans.effective_end_date >= CURRENT_DATE").
+		Where("users.user_name = ?", req.UserName).
+		Where("resource_types.name = ?", req.ResourceType).
+		Find(&usageDetails).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 
@@ -203,40 +197,32 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 	var err error
 
 	resource := ctx.QueryParam("resource")
-	resourcefilter := ""
-	if resource != "" {
-		resourcefilter = ` and resource_types.name = '` + resource + `'`
-	}
-
 	username := ctx.QueryParam("username")
-	usernamefilter := ""
+
+	// We actually want to surface the data from the usages
+	// table, not the user_plans table. Callers can get the
+	// user plan info from the included user plan field.
+	usagedata := []model.Usages{}
+
+	tx := s.GORMDB.Debug().
+		Joins("JOIN user_plans ON user_plans.id = usages.user_plan_id").
+		Joins("JOIN resource_types ON resource_types.id = usages.resource_type_id").
+		Joins("JOIN users ON users.id = user_plans.user_id").
+		Where("cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date")
+
 	if username != "" {
-		usernamefilter = ` and users.username = '` + username + `'`
+		tx.Where("users.user_name = ?", username)
 	}
 
-	plandata := []AdminUsageDetails{}
+	if resource != "" {
+		tx.Where("resource_types.name = ?", resource)
+	}
 
-	if err = s.GORMDB.Debug().Raw(
-		`
-			SELECT users.user_name,
-				users.id as user_id,
-				plans.name as plan_name,
-				usages.usage,
-				resource_types.unit,
-				resource_types.name as resource_name
-			FROM user_plans
-			JOIN plans ON plans.id = user_plans.plan_id
-			JOIN usages ON user_plans.id=usages.user_plan_id
-			JOIN quotas ON user_plans.id=quotas.user_plan_id
-			JOIN resource_types ON resource_types.id=quotas.resource_type_id
-			JOIN users ON users.id = user_plans.user_id
-			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
-		` + usernamefilter + resourcefilter,
-	).Scan(&plandata).Error; err != nil {
+	if err = tx.Find(&usagedata).Error; err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
+	return ctx.JSON(http.StatusOK, model.SuccessResponse(usagedata, http.StatusOK))
 
 }
 func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
