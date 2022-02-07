@@ -13,7 +13,7 @@
 //     - application/json
 //
 // swagger:meta
-package swaggerDocs
+package swagger
 
 import (
 	"github.com/cyverse/QMS/internal/model"

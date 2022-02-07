@@ -52,8 +52,6 @@ func RegisterHandlers(s controllers.Server) {
 	admin.PUT("/:user_name/:plan_name", s.UpdateUserPlanDetails)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
 	admin.POST("/usages/:user_name/:resource_name", s.AddUsages)
-	//usage/:username/:resource_name/:value
-
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
 
