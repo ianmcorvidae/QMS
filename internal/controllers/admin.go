@@ -193,7 +193,7 @@ func (s Server) GetAllActiveQuotas(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
 
-func (s Server) GetAllActiveUsage(ctx echo.Context) error {
+func (s Server) GetAllActiveUsages(ctx echo.Context) error {
 	var err error
 
 	resource := ctx.QueryParam("resource")
