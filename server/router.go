@@ -108,7 +108,7 @@ func RegisterHandlers(s controllers.Server) {
 
 	admin.POST("/users/:user_name/:resource_name/add", s.AddQuota)
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserQuota)
-	admin.POST("/usages/add", s.AddUsages)
+	admin.POST("/usages/:user_name/:resource_name/add", s.AddUsages)
 	//usage/:username/:resource_name/:value
 
 }
