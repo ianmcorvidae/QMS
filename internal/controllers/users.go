@@ -157,12 +157,17 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if resourceName == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Resource Name", http.StatusBadRequest))
 	}
+	usageValueString := ctx.Param("usage_value")
+	if usageValueString == "" {
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Usage Value", http.StatusBadRequest))
+	}
+	UsageValueFloat := ParseFloat(usageValueString)
 	var res = Result{}
 	err := s.GORMDB.Table("user_plans").Select("user_plans.id, users.user_name,plan_quota_defaults.resource_type_id ").Joins("JOIN users on user_plans.user_id=users.id").Joins("JOIN plan_quota_defaults on plan_quota_defaults.plan_id=user_plans.plan_id").Joins("JOIN resource_types on resource_types.id=plan_quota_defaults.resource_type_id").Where("users.user_name=? and resource_types.name=?", username, resourceName).Scan(&res).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
-	var req = model.Usage{Usage: 5000, AddedBy: "Admin", UserPlanID: res.ID, ResourceTypeID: res.ResourceTypeId}
+	var req = model.Usage{Usage: UsageValueFloat, AddedBy: "Admin", UserPlanID: res.ID, ResourceTypeID: res.ResourceTypeId}
 	err = s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))

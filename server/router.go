@@ -39,7 +39,7 @@ func RegisterHandlers(s controllers.Server) {
 	admin := v1.Group("/admin")
 	admin.GET("/usages", s.GetAllActiveUsage)
 	//plans and usages
-	admin.POST("/usages", s.UpdateUsages)
+	admin.PUT("/usages", s.UpdateUsages)
 	// Admin can Update the UserPlan of the user.
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserPlan)
 	//Route to add User by Admin. When a user is added, the user is automatically assigned Basic plan.
@@ -51,7 +51,8 @@ func RegisterHandlers(s controllers.Server) {
 	//Update the plan for a particular user.
 	admin.PUT("/:user_name/:plan_name", s.UpdateUserPlanDetails)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
-	admin.POST("/usages/:user_name/:resource_name", s.AddUsages)
+	admin.POST("/usages/:user_name/:resource_name/:usage_value", s.AddUsages)
+	admin.POST(("/updateoperation/:update_operation"), s.AddUpdatOperation)
 	//Rersources
 	v1.GET("/resources", s.GetAllResources)
 

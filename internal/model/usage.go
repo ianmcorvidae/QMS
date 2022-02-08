@@ -11,7 +11,7 @@ type Usage struct {
 	//The id for the plan.
 	// in: path
 	//required: true
-	ID *string `gorm:"json:id" type:"uuid;default:uuid_generate_v1()"`
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	//The current usage of the resource.
 	// in: path
 	//required: true
