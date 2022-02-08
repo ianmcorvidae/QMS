@@ -4,14 +4,18 @@ import (
 	"net/http"
 
 	"github.com/cyverse/QMS/internal/model"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
-// swagger:route GET admin/users adm in listUsers
-// Returns a List all the Users By Admin
-// responses:ssw
-//   200: UserResponse
-//   404: RootResponse
+// swagger:route GET /admin/users admin listUsers
+//
+// List Users
+//
+// Lists the users registered in the QMS database.
+//
+// responses:
+//   200: userListing
+//   404: errorResponse
 func (s Server) GetAllUsers(ctx echo.Context) error {
 	data := []model.User{}
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -49,15 +53,10 @@ type Result struct {
 	ResourceTypeId *string
 }
 
-// swagger:route GET /users/{UserName}/plan users listUserPlansByID
-// Returns a List all the User Plan Details
-// responses:
-//   200: UserResponse
-//   404: RootResponse
 func (s Server) GetUserPlanDetails(ctx echo.Context) error {
-	username := ctx.Param("user_name")
+	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	plandata := []PlanDetails{}
 	err := s.GORMDB.Debug().Raw(`select plans.name,
@@ -73,7 +72,7 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	where 
 	users.username=?`, username).Scan(&plandata).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(&plandata, http.StatusOK))
 }

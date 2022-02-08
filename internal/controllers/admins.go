@@ -1,12 +1,11 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/cyverse/QMS/internal/model"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type AdminQuotaDetails struct {
@@ -63,11 +62,11 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
 		value := req.UsageAdjustmentValue
-		fmt.Println(req.UserName)
 		if req.UpdateType == "sub" {
 			value = -1 * value
-			fmt.Println(value)
-		} else if req.UpdateType=="Add`"
+		} else if req.UpdateType == "Add" {
+			value = 1 * value
+		}
 		usagerec.Usage += value
 		err := s.GORMDB.Debug().Updates(&usagerec).Where("resource_type_id=?", resourceTypeID).Error
 		if err != nil {

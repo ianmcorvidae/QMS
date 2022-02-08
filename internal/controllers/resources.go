@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cyverse/QMS/internal/model"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func (s Server) GetAllResources(ctx echo.Context) error {

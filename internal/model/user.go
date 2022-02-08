@@ -1,14 +1,19 @@
 package model
 
-// Users define the structure of an User.
+// User User
+//
 // swagger:model
 type User struct {
-	//The id for the User.
+
+	// The user ID
+	//
 	// in: path
-	//required: true
+	// required: true
 	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	// The Name for the User.
+
+	// The username
+	//
 	// in: path
-	//required: true
-	UserName string `gorm:"not null;unique" json:"user_name"`
+	// required: true
+	UserName string `gorm:"not null;unique" json:"username"`
 }
