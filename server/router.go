@@ -51,7 +51,7 @@ func RegisterHandlers(s controllers.Server) {
 
 	// Admin usage endpoints.
 	admin.GET("/usages", s.GetAllActiveUsage)
-	admin.POST("/usages", s.UpdateUsages)
+	admin.PUT("/usages", s.UpdateUsages)
 	admin.POST("/usages/:user_name/:resource_name", s.AddUsages)
 
 	// Admin user endpoints.
