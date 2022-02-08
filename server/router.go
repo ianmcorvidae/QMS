@@ -2,19 +2,25 @@ package server
 
 import (
 	"github.com/cyverse-de/echo-middleware/v2/log"
+	"github.com/cyverse-de/echo-middleware/v2/redoc"
 	"github.com/cyverse/QMS/internal/controllers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func InitRouter(logger *log.Logger) *echo.Echo {
+
 	// Create the web server.
 	e := echo.New()
+
 	// Set a custom logger.
 	e.Logger = logger
+
 	// Add middleware.
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(redoc.Serve(redoc.Opts{Title: "CyVerse Quota Management System"}))
+
 	return e
 }
 
