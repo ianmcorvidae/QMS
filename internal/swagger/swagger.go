@@ -22,7 +22,7 @@ import (
 // Error Response
 //
 // swagger:response errorResponse
-type errorResponse struct {
+type ErrorResponse struct {
 
 	// in: body
 	Body struct {
@@ -40,7 +40,7 @@ type errorResponse struct {
 // bodies are treated separately.
 //
 // swagger:model
-type responseBodyWrapper struct {
+type ResponseBodyWrapper struct {
 
 	// The status of the request
 	Status string `json:"status"`
@@ -48,11 +48,11 @@ type responseBodyWrapper struct {
 
 // General information about the service
 // swagger:response rootResponse
-type rootResponseWrapper struct {
+type RootResponseWrapper struct {
 
 	// in:body
 	Body struct {
-		responseBodyWrapper
+		ResponseBodyWrapper
 
 		// The service information
 		Result model.RootResponse `json:"result"`
@@ -60,12 +60,13 @@ type rootResponseWrapper struct {
 }
 
 // General information about a service API version
+//
 // swagger:response apiVersionResponse
-type apiVersionResponseWrapper struct {
+type APIVersionResponseWrapper struct {
 
 	// in:body
 	Body struct {
-		responseBodyWrapper
+		ResponseBodyWrapper
 
 		// The API version information
 		Result model.APIVersionResponse `json:"result"`
@@ -75,11 +76,11 @@ type apiVersionResponseWrapper struct {
 // Plan Listing
 //
 // swagger:response plansResponse
-type plansResponseWrapper struct {
+type PlansResponseWrapper struct {
 
 	// in: body
 	Body struct {
-		responseBodyWrapper
+		ResponseBodyWrapper
 
 		// The list of plans
 		Result []model.Plan `json:"result"`
@@ -89,7 +90,7 @@ type plansResponseWrapper struct {
 // Plan Information
 //
 // swagger:parameters getPlanByID
-type plansIDParameter struct {
+type PlanIDParameter struct {
 
 	// The plan identifier
 	//
@@ -101,11 +102,11 @@ type plansIDParameter struct {
 // Plan Information
 //
 // swagger:response planResponse
-type planResponseWrapper struct {
+type PlanResponseWrapper struct {
 
 	// in: body
 	Body struct {
-		responseBodyWrapper
+		ResponseBodyWrapper
 
 		// The plan information
 		Result model.Plan `json:"result"`
@@ -117,11 +118,11 @@ type planResponseWrapper struct {
 // User Listing
 //
 // swagger:response userListing
-type userListingResponseWrapper struct {
+type UserListingResponseWrapper struct {
 
 	// in: body
 	Body struct {
-		responseBodyWrapper
+		ResponseBodyWrapper
 
 		// The user listing
 		Result []model.User `json:"result"`
