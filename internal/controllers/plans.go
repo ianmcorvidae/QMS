@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,40 +10,53 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// swagger:route GET /plans plans listPlans
-// Returns a List all the plans
+// GetAllPlans is the handler for the GET /v1/plans endpoint.
+//
+// swagger:route GET /v1/plans plans listPlans
+//
+// List Plans
+//
+// Lists all of the plans that are currently available.
+//
 // responses:
 //   200: plansResponse
-//   404: RootResponse
+//   404: errorResponse
 func (s Server) GetAllPlans(ctx echo.Context) error {
 	data := []model.Plan{}
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
+	return model.Success(ctx, data, http.StatusOK)
 }
 
-// swagger:route GET /plans/{PlanID} plans listPlansByID
-// Returns a List all the plans
+// GetPlanByID returns the plan with the given identifier.
+//
+// swagger:route GET /plans/{plan_id} plans getPlanByID
+//
+// Get Plan Information
+//
+// Returns the plan with the given identifier.
+//
 // responses:
-//   200: plansResponse
-//   500: RootResponse
-func (s Server) GetPlansForID(ctx echo.Context) error {
+//   200: planResponse
+//   500: errorResponse
+func (s Server) GetPlanByID(ctx echo.Context) error {
 	plan_id := ctx.Param("plan_id")
 	if plan_id == "" {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
+		return model.Error(ctx, "invalid plan ID", http.StatusBadRequest)
 	}
 	data := model.Plan{}
 	err := s.GORMDB.Debug().Where("id=@id", sql.Named("id", plan_id)).Find(&data).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	if data.Name == "" || data.Description == "" {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse("Invalid PlanID", http.StatusInternalServerError))
+		msg := fmt.Sprintf("plan ID not found: %s", plan_id)
+		return model.Error(ctx, msg, http.StatusInternalServerError)
 	}
 
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
+	return model.Success(ctx, data, http.StatusOK)
 }
 
 type Plan struct {

@@ -6,25 +6,25 @@ import (
 	"gorm.io/gorm"
 )
 
-// Plan defines the structure for an Api Plan.
+// Plan
+//
 // swagger:model
 type Plan struct {
-	//The id for the plan
-	// in: path
-	//required: true
-	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	// The Name for the plan
-	//required: true
-	Name string `gorm:"not null;unique" json:"name"`
-	// The Description for the plan
-	//required: true
-	Description string `gorm:"not null" json:"description"`
-	// PlanQuotaDefaults []PlanQuotaDefaults `json:"quota_defaults"`
 
+	// The plan identifier
+	// required: true
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+
+	// The plan name
+	// required: true
+	Name string `gorm:"not null;unique" json:"name"`
+
+	// A brief description of the plan
+	// required: true
+	Description string `gorm:"not null" json:"description"`
 }
 
 // PlanQuotaDefaults define the structure for an Api Plan and Quota.
-// swagger:model
 type PlanQuotaDefault struct {
 	gorm.Model
 	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
@@ -36,36 +36,14 @@ type PlanQuotaDefault struct {
 }
 
 // UserPlans define the structure for the API User plans.
-// swagger:model
 type UserPlan struct {
 	gorm.Model
-	//The id for the UserPlans.
-	// in: path
-	//required: true
-	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	//The effective start date of the plan for the user.
-	// in: path
-	//required: false
+	ID                 *string   `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	EffectiveStartDate time.Time `gorm:"json:effective_start_date" type:"date"`
-	//The effective end date of the plan for the user.
-	// in: path
-	//required: false
-	EffectiveEndDate time.Time `gorm:"json:effective_end_date" type:"date"`
-	//Added by:.
-	// in: path
-	//required: false
-	AddedBy string `gorm:"json:added_by"`
-	//The last modified of the plan for the user.
-	// in: path
-	//required: false
-	LastModifiedBy string `gorm:"json:last_modified_by"`
-	//The UserID for the user.
-	// in: path
-	//required: true
-	UserID *string `gorm:"type:uuid;not null" json:"-"`
-	User   User    `json:"users"`
-	// //The planID for the user.
-	// // in: path
-	// //required: true
-	PlanID *string `gorm:"type:uuid;not null" json:"-"`
+	EffectiveEndDate   time.Time `gorm:"json:effective_end_date" type:"date"`
+	AddedBy            string    `gorm:"json:added_by"`
+	LastModifiedBy     string    `gorm:"json:last_modified_by"`
+	UserID             *string   `gorm:"type:uuid;not null" json:"-"`
+	User               User      `json:"users"`
+	PlanID             *string   `gorm:"type:uuid;not null" json:"-"`
 }
