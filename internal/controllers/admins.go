@@ -32,6 +32,7 @@ type UpdateUsagesReq struct {
 	UpdateType           string  `json:"update_type"`
 	UsageAdjustmentValue float64 `json:"usage_adjustment_value"`
 	EffectiveDate        string  `json:"effective_date"`
+	Unit                 string  `json:"unit"`
 }
 
 type UpdateQuotaReq struct {
@@ -62,9 +63,9 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
 		value := req.UsageAdjustmentValue
-		if req.UpdateType == "sub" {
+		if req.UpdateType == "SET" {
 			value = -1 * value
-		} else if req.UpdateType == "Add" {
+		} else if req.UpdateType == "ADD" {
 			value = 1 * value
 		}
 		usagerec.Usage += value
@@ -72,6 +73,17 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 		}
+	}
+	var updateOperation = model.UpdateOperation{}
+	err = s.GORMDB.Debug().Where("name=?", req.UpdateType).Find(&updateOperation).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+	}
+	updateOperationID := *updateOperation.ID
+	var update = model.Update{ValueType: req.Unit, UpdatedBy: "Admin", Value: req.UsageAdjustmentValue, ResourceTypeID: &resourceTypeID, UpdateOperationID: &updateOperationID}
+	err = s.GORMDB.Debug().Create(&update).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Successfully Updated.", http.StatusOK))
 }

@@ -60,6 +60,7 @@ func RegisterHandlers(s controllers.Server) {
 	admin.PUT("/:user_name/:plan_name", s.UpdateUserPlanDetails)
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserPlan)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
+	admin.POST(("/updateOP/:update_operation"), s.AddUpdatOperation)
 
 	// Admin resource endpoints.
 	admin.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
