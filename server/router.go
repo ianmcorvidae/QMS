@@ -51,8 +51,10 @@ func RegisterHandlers(s controllers.Server) {
 
 	// Admin usage endpoints.
 	admin.GET("/usages", s.GetAllActiveUsage)
+	// Updates the usage of a particular user and puts an update record in the update table.
 	admin.PUT("/usages", s.UpdateUsages)
 	admin.POST("/usages/:user_name/:resource_name", s.AddUsages)
+	admin.POST(("/updateOP/:update_operation"), s.AddUpdatOperation)
 
 	// Admin user endpoints.
 	admin.GET("/users", s.GetAllUsers)
@@ -60,7 +62,6 @@ func RegisterHandlers(s controllers.Server) {
 	admin.PUT("/:user_name/:plan_name", s.UpdateUserPlanDetails)
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserPlan)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
-	admin.POST(("/updateOP/:update_operation"), s.AddUpdatOperation)
 
 	// Admin resource endpoints.
 	admin.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
