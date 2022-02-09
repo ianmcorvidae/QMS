@@ -1,11 +1,17 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
+)
+
+const (
+	UpdateTypeSet = "SET"
+	UpdateTypeAdd = "ADD"
 )
 
 type AdminQuotaDetails struct {
@@ -46,11 +52,13 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		req UpdateUsagesReq
 	)
 	if err = ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest,
+			model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
 	effectivedate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse(err.Error(), http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest,
+			model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
 	var resourceType = model.ResourceType{Name: req.ResourceType}
 	s.GORMDB.Debug().Find(&resourceType)
@@ -66,7 +74,8 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		Where("resource_types.name=? AND users.user_name=?", req.ResourceType, req.UserName).
 		Scan(&usageDetails).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
@@ -80,27 +89,35 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 			msg := fmt.Sprintf("invalid update type: %s", req.UpdateType)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
-		err := s.GORMDB.Debug().Updates(&usagerec).Where("resource_type_id=?", resourceTypeID).Error
+		err := s.GORMDB.Debug().
+			Updates(&usagerec).
+			Where("resource_type_id=?", resourceTypeID).Error
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError,
+				model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 		}
 	}
 	var updateOperation = model.UpdateOperation{}
-	err = s.GORMDB.Debug().Where("name=?", req.UpdateType).Find(&updateOperation).Error
+	err = s.GORMDB.Debug().
+		Where("name=?", req.UpdateType).
+		Find(&updateOperation).
+		Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	updateOperationID := *updateOperation.ID
 	var update = model.Update{
-		ValueType: req.Unit,
-		UpdatedBy: "Admin",
-		Value: req.UsageAdjustmentValue,
-		ResourceTypeID: &resourceTypeID,
-		UpdateOperationID: &updateOperationID
+		ValueType:         req.Unit,
+		UpdatedBy:         "Admin",
+		Value:             req.UsageAdjustmentValue,
+		ResourceTypeID:    &resourceTypeID,
+		UpdateOperationID: &updateOperationID,
 	}
 	err = s.GORMDB.Debug().Create(&update).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Successfully Updated.", http.StatusOK))
 }
