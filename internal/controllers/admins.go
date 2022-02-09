@@ -61,7 +61,11 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 			model.ErrorResponse(err.Error(), http.StatusBadRequest))
 	}
 	var resourceType = model.ResourceType{Name: req.ResourceType}
-	s.GORMDB.Debug().Find(&resourceType)
+	err = s.GORMDB.Debug().Find(&resourceType).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Resource Type not found.", http.StatusInternalServerError))
+	}
 	resourceTypeID := *resourceType.ID
 	usageDetails := []model.Usage{}
 	err = s.GORMDB.Debug().

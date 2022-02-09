@@ -91,8 +91,12 @@ func (s Server) AddUser(ctx echo.Context) error {
 			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	userID := *user.ID
-	var plan = model.Plan{Name: "Basic"}
-	s.GORMDB.Debug().Find(&plan, "name=?", "Basic")
+	var plan = model.Plan{}
+	err = s.GORMDB.Debug().Find(&plan, "name=?", "Basic").Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Plan Name Not Found", http.StatusInternalServerError))
+	}
 	planId := *plan.ID
 	var userPlan = model.UserPlan{AddedBy: "Admin", UserID: &userID, PlanID: &planId}
 	err = s.GORMDB.Debug().Create(&userPlan).Error
@@ -104,16 +108,32 @@ func (s Server) AddUser(ctx echo.Context) error {
 	cpu := "CPU"
 	var storageResource = model.ResourceType{}
 	var cpuResource = model.ResourceType{}
-	s.GORMDB.Debug().Find(&storageResource, "name=?", storage)
+	err = s.GORMDB.Debug().Find(&storageResource, "name=?", storage).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Resource Not Found: "+storage, http.StatusInternalServerError))
+	}
 	storageId := *storageResource.ID
-	s.GORMDB.Debug().Find(&cpuResource, "name=?", cpu)
+	err = s.GORMDB.Debug().Find(&cpuResource, "name=?", cpu).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Resource Not Found: "+cpu, http.StatusInternalServerError))
+	}
 	cpuId := *cpuResource.ID
 	userPlanId := *userPlan.ID
 	var defaultStorageQuota = model.PlanQuotaDefault{}
-	s.GORMDB.Debug().Find(&defaultStorageQuota, "resource_type_id=?", storageId)
+	err = s.GORMDB.Debug().Find(&defaultStorageQuota, "resource_type_id=?", storageId).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Default Quota not found for Resource Type: "+storage, http.StatusInternalServerError))
+	}
 	defaultStorageQuotaValue := defaultStorageQuota.QuotaValue
 	var defaultcpuQuota = model.PlanQuotaDefault{}
-	s.GORMDB.Debug().Find(&defaultcpuQuota, "resource_type_id=?", cpuId)
+	err = s.GORMDB.Debug().Find(&defaultcpuQuota, "resource_type_id=?", cpuId).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Default Quota not found for Resource Type: "+cpu, http.StatusInternalServerError))
+	}
 	defaultCPUQuotaValue := defaultcpuQuota.QuotaValue
 	var userQuota = []model.Quota{
 		{
@@ -149,20 +169,32 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 			model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
 	}
 	var user = model.User{UserName: username}
-	s.GORMDB.Debug().Find(&user, "user_name=?", username)
+	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("User Name Not Found", http.StatusInternalServerError))
+	}
 	userID := *user.ID
 	var plan = model.Plan{Name: planname}
-	s.GORMDB.Debug().Find(&plan, "name=?", planname)
+	err = s.GORMDB.Debug().Find(&plan, "name=?", planname).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Plan Name Not Found", http.StatusInternalServerError))
+	}
 	planId := *plan.ID
 	var userPlan = model.UserPlan{}
-	s.GORMDB.Debug().Find(&userPlan, "user_id=?", userID)
+	err = s.GORMDB.Debug().Find(&userPlan, "user_id=?", userID).Error
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("User is not enrolled onto an Plans", http.StatusInternalServerError))
+	}
 	userPlanId := *userPlan.ID
 	if *userPlan.PlanID == planId {
 		return ctx.JSON(http.StatusInternalServerError,
 			model.ErrorResponse("User cannot be updated with the existing plan: "+planname,
 				http.StatusInternalServerError))
 	}
-	err := s.GORMDB.Debug().
+	err = s.GORMDB.Debug().
 		Model(&userPlan).Where("id=?", userPlanId).
 		Update("plan_id", planId).Error
 	if err != nil {
@@ -188,9 +220,13 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest,
 			model.ErrorResponse("Invalid Usage Value", http.StatusBadRequest))
 	}
-	UsageValueFloat := ParseFloat(usageValueString)
+	UsageValueFloat, err := ParseFloat(usageValueString)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			model.ErrorResponse("Invalid Usage Value", http.StatusInternalServerError))
+	}
 	var res = Result{}
-	err := s.GORMDB.Table("user_plans").
+	err = s.GORMDB.Table("user_plans").
 		Select("user_plans.id, users.user_name,plan_quota_defaults.resource_type_id ").
 		Joins("JOIN users on user_plans.user_id=users.id").
 		Joins("JOIN plan_quota_defaults on plan_quota_defaults.plan_id=user_plans.plan_id").
