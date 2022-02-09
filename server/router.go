@@ -63,8 +63,9 @@ func RegisterHandlers(s controllers.Server) {
 	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserPlan)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
 
-	// Admin resource endpoints.
-	admin.POST("/resources/:resource_name/:resource_unit/add", s.AddResourceType)
+	// Admin resource type endpoints.
+	adminResourceTypes := admin.Group("/resource-types")
+	adminResourceTypes.POST("", s.AddResourceType)
 
 	// Admin plan quota default endpoints.
 	admin.POST("/planQuotaDefault", s.AddPlanQuotaDefault)

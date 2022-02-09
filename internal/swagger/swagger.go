@@ -113,7 +113,7 @@ type PlanResponseWrapper struct {
 	}
 }
 
-//Users
+// Users
 
 // User Listing
 //
@@ -127,4 +127,31 @@ type UserListingResponseWrapper struct {
 		// The user listing
 		Result []model.User `json:"result"`
 	}
+}
+
+// Resource Types
+
+// Resource Type Details
+//
+// swagger:response resourceTypeDetails
+type ResourceTypeDetailsResponseWrapper struct {
+
+	// in: body
+	Body struct {
+		ResponseBodyWrapper
+
+		// The resource type information
+		Result model.ResourceType `json:"result"`
+	}
+}
+
+// Parameters for the endpoint used to add resource types.
+//
+// swagger:parameters addResourceType
+type AddResourceTypeParameters struct {
+
+	// The resource type information
+	//
+	// in: body
+	Body model.ResourceType
 }

@@ -83,25 +83,6 @@ func (s Server) AddPlan(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
 
-func (s Server) AddResourceType(ctx echo.Context) error {
-	name := ctx.Param("resource_name")
-	if name == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid Resource name", http.StatusBadRequest))
-	}
-	unit := ctx.Param("resource_unit")
-	if unit == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid resource Unit", http.StatusBadRequest))
-	}
-	var resource_type = model.ResourceType{Name: name, Unit: unit}
-	err := s.GORMDB.Debug().Create(&resource_type).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
-}
-
 func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 	planName := "Basic"
 	resourceName1 := "CPU"
