@@ -83,7 +83,13 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
 	updateOperationID := *updateOperation.ID
-	var update = model.Update{ValueType: req.Unit, UpdatedBy: "Admin", Value: req.UsageAdjustmentValue, ResourceTypeID: &resourceTypeID, UpdateOperationID: &updateOperationID}
+	var update = model.Update{
+		ValueType: req.Unit,
+		UpdatedBy: "Admin",
+		Value: req.UsageAdjustmentValue,
+		ResourceTypeID: &resourceTypeID,
+		UpdateOperationID: &updateOperationID
+	}
 	err = s.GORMDB.Debug().Create(&update).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
