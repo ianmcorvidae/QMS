@@ -56,7 +56,15 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	s.GORMDB.Debug().Find(&resourceType)
 	resourceTypeID := *resourceType.ID
 	usageDetails := []model.Usage{}
-	err = s.GORMDB.Debug().Table("user_plans").Select("usages.*").Joins("JOIN usages ON user_plans.id=usages.user_plan_id").Joins("JOIN resource_types ON resource_types.id=usages.resource_type_id").Joins("JOIN quota ON user_plans.id=quota.user_plan_id").Joins("JOIN users ON users.id = user_plans.user_id").Where("resource_types.name=? AND users.user_name=?", req.ResourceType, req.UserName).Scan(&usageDetails).Error
+	err = s.GORMDB.Debug().
+		Table("user_plans").
+		Select("usages.*").
+		Joins("JOIN usages ON user_plans.id=usages.user_plan_id").
+		Joins("JOIN resource_types ON resource_types.id=usages.resource_type_id").
+		Joins("JOIN quota ON user_plans.id=quota.user_plan_id").
+		Joins("JOIN users ON users.id = user_plans.user_id").
+		Where("resource_types.name=? AND users.user_name=?", req.ResourceType, req.UserName).
+		Scan(&usageDetails).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
