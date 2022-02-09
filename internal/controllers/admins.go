@@ -63,12 +63,15 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
 		value := req.UsageAdjustmentValue
-		if req.UpdateType == "SET" {
-			value = -1 * value
-		} else if req.UpdateType == "ADD" {
-			value = 1 * value
+		switch req.UpdateType {
+		case UpdateTypeSet:
+			usagerec.Usage = value
+		case UpdateTypeAdd:
+			usagerec.Usage += value
+		default:
+			msg := fmt.Sprintf("invalid update type: %s", req.UpdateType)
+			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
-		usagerec.Usage += value
 		err := s.GORMDB.Debug().Updates(&usagerec).Where("resource_type_id=?", resourceTypeID).Error
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
