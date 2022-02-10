@@ -24,7 +24,7 @@ type Plan struct {
 	Description string `gorm:"not null" json:"description"`
 }
 
-// PlanQuotaDefaults define the structure for an Api Plan and Quota.
+// PlanQuotaDefault define the structure for an Api Plan and Quota.
 type PlanQuotaDefault struct {
 	gorm.Model
 	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
@@ -35,7 +35,7 @@ type PlanQuotaDefault struct {
 	ResourceType   ResourceType `json:"resource_type"`
 }
 
-// UserPlans define the structure for the API User plans.
+// UserPlan define the structure for the API User plans.
 type UserPlan struct {
 	gorm.Model
 	ID                 *string   `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`

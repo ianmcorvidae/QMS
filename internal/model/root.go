@@ -25,14 +25,14 @@ type APIVersionResponse struct {
 	APIVersion string `json:"api_version"`
 }
 
-// A wrapper for all response bodies.
+// Response wrapper for all response bodies.
 type Response struct {
 	Result interface{} `json:"result,omitempty"`
 	Error  string      `json:"error,omitempty"`
 	Status string      `json:"status"`
 }
 
-// Basic success Response
+// SuccessResponse Basic Success Response
 func SuccessResponse(data interface{}, status int) Response {
 	return Response{
 		Result: data,
@@ -45,7 +45,7 @@ func Success(ctx echo.Context, data interface{}, status int) error {
 	return ctx.JSON(status, SuccessResponse(data, status))
 }
 
-// Basic error response
+// ErrorResponse Basic error response
 func ErrorResponse(errStr string, status int) Response {
 	return Response{
 		Error:  errStr,

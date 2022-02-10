@@ -8,7 +8,7 @@ import (
 )
 
 func (s Server) GetAllResources(ctx echo.Context) error {
-	data := []model.ResourceType{}
+	var data []model.ResourceType
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)

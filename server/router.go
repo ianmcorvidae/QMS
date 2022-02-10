@@ -54,7 +54,7 @@ func RegisterHandlers(s controllers.Server) {
 	// Updates the usage of a particular user and puts an update record in the update table.
 	admin.PUT("/usages", s.UpdateUsages)
 	admin.POST("/usages/:user_name/:resource_name", s.AddUsages)
-	admin.POST(("/update-op/:update_operation"), s.AddUpdateOperation)
+	admin.POST("/update-op/:update_operation", s.AddUpdateOperation)
 
 	// Admin user endpoints.
 	admin.GET("/users", s.GetAllUsers)
