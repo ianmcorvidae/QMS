@@ -169,3 +169,32 @@ type AddResourceTypeParameters struct {
 	// in: body
 	Body model.ResourceType
 }
+
+// Parameters for the endpoint used to get resource type details.
+//
+// swagger:parameters getResourceTypeDetails
+type GetResourceTypeDetailsParameters struct {
+
+	// The resource type ID
+	//
+	// in: path
+	// required: true
+	ResourceTypeID string `json:"resource_type_id"`
+}
+
+// Parameters for the endpoint used to update resource types.
+//
+// swagger:parameters updateResourceType
+type UpdateResourceTypeParameters struct {
+
+	// The resource type ID
+	//
+	// in: path
+	// required: true
+	ResourceTypeID string `json:"resource_type_id"`
+
+	// The resource type details
+	//
+	// in: body
+	Body model.ResourceType
+}

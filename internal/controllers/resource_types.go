@@ -17,9 +17,9 @@ import (
 //
 // responses:
 //   200: resourceTypeListing
-//   400: errorResponse
+//   500: errorResponse
 
-// swagger:route GET /v1/admin-resource-types admin-resource-types listResourceTypes
+// swagger:route GET /v1/admin/resource-types admin-resource-types listResourceTypes
 //
 // List Resource Types
 //
@@ -27,7 +27,7 @@ import (
 //
 // responses:
 //   200: resourceTypeListing
-//   400: errorResponse
+//   500: errorResponse
 
 // ListResourceTypes is the handler for the GET /v1/resource-types and GET /v1/admin/resource-types endpoints.
 func (s Server) ListResourceTypes(ctx echo.Context) error {
@@ -48,7 +48,9 @@ func (s Server) ListResourceTypes(ctx echo.Context) error {
 //
 // responses:
 //   200: resourceTypeDetails
-//   404: errorResponse
+//   400: errorResponse
+//   409: errorResponse
+//   500: errorResponse
 
 // AddResourceType is the handler for the POST /v1/admin/resource-types endpoint.
 func (s Server) AddResourceType(ctx echo.Context) error {
@@ -85,4 +87,37 @@ func (s Server) AddResourceType(ctx echo.Context) error {
 	}
 
 	return model.Success(ctx, resourceType, http.StatusOK)
+}
+
+// swagger:route GET /v1/admin/resource-types/{resource-type-id} admin-resource-types getResourceTypeDetails
+//
+// Get Resource Type Details
+//
+// Returns information about the resource type with the given identifier.
+//
+// responses:
+//   200: resourceTypeDetails
+//   400: errorResponse
+//   500: errorResponse
+
+// GetResourceTypeDetails is the handler for the GET /v1/admin/resource-types/{resource-type-id} endpoint.
+func (s Server) GetResourceTypeDetails(ctx echo.Context) error {
+	return model.Success(ctx, &model.ResourceType{}, http.StatusOK)
+}
+
+// swagger:route PUT /v1/admin/resource-types/{resource-type-id} admin-resource-types updateResourceType
+//
+// Update Resource Type
+//
+// Updates an existing resource type in the QMS database.
+//
+// responses:
+//   200: resourceTypeDetails
+//   400: errorResponse
+//   404: errorResponse
+//   500: errorResponse
+
+// UpdatedResourceType is the handler for the PUT /v1/admin/resource-types/{resource-type-id} endpoint.
+func (s Server) UpdateResourceType(ctx echo.Context) error {
+	return model.Success(ctx, &model.ResourceType{}, http.StatusOK)
 }
