@@ -25,4 +25,4 @@ go.work
 swagger.json
 
 # Goland specified setting files.
-.idea
+.idea/
