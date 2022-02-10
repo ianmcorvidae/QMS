@@ -57,14 +57,12 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	}
 	effectivedate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse(err.Error(), http.StatusBadRequest))
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
 	var resourceType = model.ResourceType{Name: req.ResourceType}
 	err = s.GORMDB.Debug().Find(&resourceType).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Resource Type not found.", http.StatusInternalServerError))
+		return model.Error(ctx, "resource type not found.", http.StatusInternalServerError)
 	}
 	resourceTypeID := *resourceType.ID
 	usageDetails := []model.Usage{}
@@ -78,8 +76,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		Where("resource_types.name=? AND users.user_name=?", req.ResourceType, req.UserName).
 		Scan(&usageDetails).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	for _, usagerec := range usageDetails {
 		usagerec.UpdatedAt = effectivedate
@@ -97,8 +94,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 			Updates(&usagerec).
 			Where("resource_type_id=?", resourceTypeID).Error
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError,
-				model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	var updateOperation = model.UpdateOperation{}
@@ -107,8 +103,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		Find(&updateOperation).
 		Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	updateOperationID := *updateOperation.ID
 	var update = model.Update{
@@ -120,10 +115,9 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	}
 	err = s.GORMDB.Debug().Create(&update).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Successfully Updated.", http.StatusOK))
+	return model.Success(ctx, "Success", http.StatusOK)
 }
 
 func (s Server) GetAllActiveUsage(ctx echo.Context) error {
@@ -156,7 +150,7 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
 		` + usernamefilter + resourcefilter,
 	).Scan(&plandata).Error; err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
@@ -177,10 +171,10 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	join users on users.id=user_plans.user_id
 	where
 	user_plans.effective_start_date<=cast(now() as date) and
-	user_plans.effective_end_date>=cast(now() as date) and
+	user_plans.effective_end_date>=cast(now() as date) ands
 	users.username=?`, username).Scan(&plandata).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
@@ -188,12 +182,12 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 func (s Server) AddUpdateOperation(ctx echo.Context) error {
 	updateOperationName := ctx.Param("update_operation")
 	if updateOperationName == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Update Operation", http.StatusBadRequest))
+		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("invalid update operation", http.StatusBadRequest))
 	}
 	var updateOperation = model.UpdateOperation{Name: updateOperationName}
 	err := s.GORMDB.Debug().Create(&updateOperation).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return ctx.Success(ctx, "Success", http.StatusOK)
+	return model.Success(ctx, "Success", http.StatusOK)
 }

@@ -20,8 +20,7 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 	data := []model.User{}
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }
@@ -82,27 +81,24 @@ func (s Server) AddUser(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
 		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+			model.ErrorResponse("invalid username", http.StatusBadRequest))
 	}
 	var user = model.User{UserName: username}
 	err := s.GORMDB.Debug().Create(&user).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	userID := *user.ID
 	var plan = model.Plan{}
 	err = s.GORMDB.Debug().Find(&plan, "name=?", "Basic").Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Plan Name Not Found", http.StatusInternalServerError))
+		return model.Error(ctx, "plan name not found.", http.StatusInternalServerError)
 	}
 	planId := *plan.ID
 	var userPlan = model.UserPlan{AddedBy: "Admin", UserID: &userID, PlanID: &planId}
 	err = s.GORMDB.Debug().Create(&userPlan).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	storage := "STORAGE"
 	cpu := "CPU"
@@ -110,29 +106,27 @@ func (s Server) AddUser(ctx echo.Context) error {
 	var cpuResource = model.ResourceType{}
 	err = s.GORMDB.Debug().Find(&storageResource, "name=?", storage).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Resource Not Found: "+storage, http.StatusInternalServerError))
+		return model.Error(ctx, "resource not Found: "+storage, http.StatusInternalServerError)
 	}
 	storageId := *storageResource.ID
 	err = s.GORMDB.Debug().Find(&cpuResource, "name=?", cpu).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Resource Not Found: "+cpu, http.StatusInternalServerError))
+		return model.Error(ctx, "resource not found.: "+cpu, http.StatusInternalServerError)
 	}
 	cpuId := *cpuResource.ID
 	userPlanId := *userPlan.ID
 	var defaultStorageQuota = model.PlanQuotaDefault{}
 	err = s.GORMDB.Debug().Find(&defaultStorageQuota, "resource_type_id=?", storageId).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Default Quota not found for Resource Type: "+storage, http.StatusInternalServerError))
+		return model.Error(ctx, "default quota not found. for resource type: "+storage,
+			http.StatusInternalServerError)
 	}
 	defaultStorageQuotaValue := defaultStorageQuota.QuotaValue
 	var defaultcpuQuota = model.PlanQuotaDefault{}
 	err = s.GORMDB.Debug().Find(&defaultcpuQuota, "resource_type_id=?", cpuId).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Default Quota not found for Resource Type: "+cpu, http.StatusInternalServerError))
+		return model.Error(ctx, "default quota not found for resource type: "+cpu,
+			http.StatusInternalServerError)
 	}
 	defaultCPUQuotaValue := defaultcpuQuota.QuotaValue
 	var userQuota = []model.Quota{
@@ -151,8 +145,7 @@ func (s Server) AddUser(ctx echo.Context) error {
 	}
 	err = s.GORMDB.Debug().Create(&userQuota).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
@@ -160,46 +153,39 @@ func (s Server) AddUser(ctx echo.Context) error {
 func (s Server) UpdateUserPlan(ctx echo.Context) error {
 	planname := ctx.Param("plan_name")
 	if planname == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid Plan Name", http.StatusBadRequest))
+		return model.Error(ctx, "invalid Plan name", http.StatusBadRequest)
 	}
 	username := ctx.Param("user_name")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	var user = model.User{UserName: username}
 	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("User Name Not Found", http.StatusInternalServerError))
+		return model.Error(ctx, "user name not found.", http.StatusInternalServerError)
 	}
 	userID := *user.ID
 	var plan = model.Plan{Name: planname}
 	err = s.GORMDB.Debug().Find(&plan, "name=?", planname).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Plan Name Not Found", http.StatusInternalServerError))
+		return model.Error(ctx, "plan name not found.", http.StatusInternalServerError)
 	}
 	planId := *plan.ID
 	var userPlan = model.UserPlan{}
 	err = s.GORMDB.Debug().Find(&userPlan, "user_id=?", userID).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("User is not enrolled onto an Plans", http.StatusInternalServerError))
+		return model.Error(ctx, "user is not enrolled to a plan", http.StatusInternalServerError)
 	}
 	userPlanId := *userPlan.ID
 	if *userPlan.PlanID == planId {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("User cannot be updated with the existing plan: "+planname,
-				http.StatusInternalServerError))
+		return model.Error(ctx, "user cannot be updated with the existing plan: "+planname,
+			http.StatusInternalServerError)
 	}
 	err = s.GORMDB.Debug().
 		Model(&userPlan).Where("id=?", userPlanId).
 		Update("plan_id", planId).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
@@ -208,22 +194,21 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
 		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+			model.ErrorResponse("invalid username", http.StatusBadRequest))
 	}
 	resourceName := ctx.Param("resource_name")
 	if resourceName == "" {
 		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid Resource Name", http.StatusBadRequest))
+			model.ErrorResponse("invalid resource name", http.StatusBadRequest))
 	}
 	usageValueString := ctx.Param("usage_value")
 	if usageValueString == "" {
 		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("Invalid Usage Value", http.StatusBadRequest))
+			model.ErrorResponse("invalid usage value", http.StatusBadRequest))
 	}
 	UsageValueFloat, err := ParseFloat(usageValueString)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("Invalid Usage Value", http.StatusInternalServerError))
+		return model.Error(ctx, "invalid usage value", http.StatusInternalServerError)
 	}
 	var res = Result{}
 	err = s.GORMDB.Table("user_plans").
@@ -234,8 +219,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		Where("users.user_name=? and resource_types.name=?", username, resourceName).
 		Scan(&res).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	var req = model.Usage{
 		Usage:          UsageValueFloat,
@@ -245,8 +229,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	}
 	err = s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK,
 		model.SuccessResponse("Successfully updated Usage for the user: "+username, http.StatusOK))
