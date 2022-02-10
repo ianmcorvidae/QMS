@@ -23,3 +23,6 @@ go.work
 
 # The generated OpenAPI specification.
 swagger.json
+
+# Goland specified setting files.
+.idea
