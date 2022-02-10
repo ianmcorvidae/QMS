@@ -44,7 +44,7 @@ func RegisterHandlers(s controllers.Server) {
 	users.GET("/:username/plan", s.GetUserPlanDetails)
 
 	// Resources.
-	v1.GET("/resources", s.GetAllResources)
+	v1.GET("/resource-types", s.ListResourceTypes)
 
 	// Admin endpoints.
 	admin := v1.Group("/admin")
@@ -65,6 +65,7 @@ func RegisterHandlers(s controllers.Server) {
 
 	// Admin resource type endpoints.
 	adminResourceTypes := admin.Group("/resource-types")
+	adminResourceTypes.GET("", s.ListResourceTypes)
 	adminResourceTypes.POST("", s.AddResourceType)
 
 	// Admin plan quota default endpoints.

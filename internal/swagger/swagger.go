@@ -131,6 +131,20 @@ type UserListingResponseWrapper struct {
 
 // Resource Types
 
+// Resource Type Listing
+//
+// swagger:response resourceTypeListing
+type ResourceTypeListingWrapper struct {
+
+	// in: body
+	Body struct {
+		ResponseBodyWrapper
+
+		// The resource type listing
+		Result []model.ResourceType `json:"result"`
+	}
+}
+
 // Resource Type Details
 //
 // swagger:response resourceTypeDetails
