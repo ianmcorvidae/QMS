@@ -185,7 +185,7 @@ func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
 }
 
-func (s Server) AddUpdatOperation(ctx echo.Context) error {
+func (s Server) AddUpdateOperation(ctx echo.Context) error {
 	updateOperationName := ctx.Param("update_operation")
 	if updateOperationName == "" {
 		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid Update Operation", http.StatusBadRequest))
