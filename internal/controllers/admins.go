@@ -193,7 +193,7 @@ func (s Server) AddUpdatOperation(ctx echo.Context) error {
 	var updateOperation = model.UpdateOperation{Name: updateOperationName}
 	err := s.GORMDB.Debug().Create(&updateOperation).Error
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return ctx.Success(ctx, "Success", http.StatusOK)
 }
