@@ -195,5 +195,5 @@ func (s Server) AddUpdatOperation(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, model.ErrorResponse(err.Error(), http.StatusInternalServerError))
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
+	return ctx.Success(ctx, "Success", http.StatusOK)
 }
