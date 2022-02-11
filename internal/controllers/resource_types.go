@@ -21,11 +21,11 @@ func extractResourceTypeID(ctx echo.Context) (string, error) {
 	return resourceTypeID, nil
 }
 
-// swagger:route GET /v1/resource-types resource-types listResourceTypes
+// swagger:route GET /v1/resource-types listResourceTypes
 //
 // List Resource Types
 //
-// Lists all of the resource types defined in the QMS database.
+// Lists all the resource types defined in the QMS database.
 //
 // responses:
 //   200: resourceTypeListing
@@ -35,7 +35,7 @@ func extractResourceTypeID(ctx echo.Context) (string, error) {
 //
 // List Resource Types
 //
-// Lists all of the resource types defined in the QMS database.
+// Lists all the resource types defined in the QMS database.
 //
 // responses:
 //   200: resourceTypeListing
@@ -43,7 +43,7 @@ func extractResourceTypeID(ctx echo.Context) (string, error) {
 
 // ListResourceTypes is the handler for the GET /v1/resource-types and GET /v1/admin/resource-types endpoints.
 func (s Server) ListResourceTypes(ctx echo.Context) error {
-	data := []model.ResourceType{}
+	var data []model.ResourceType
 	err := s.GORMDB.Debug().Find(&data).Error
 	if err != nil {
 		msg := fmt.Sprintf("unable to list resource types: %s", err)
@@ -149,7 +149,7 @@ func (s Server) GetResourceTypeDetails(ctx echo.Context) error {
 //   404: notFoundResponse
 //   500: internalServerErrorResponse
 
-// UpdatedResourceType is the handler for the PUT /v1/admin/resource-types/{resource-type-id} endpoint.
+// UpdateResourceType is the handler for the PUT /v1/admin/resource-types/{resource-type-id} endpoint.
 func (s Server) UpdateResourceType(ctx echo.Context) error {
 	var err error
 
@@ -199,6 +199,7 @@ func (s Server) UpdateResourceType(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
+	//return model.HTTPError(ctx, err.(*echo.HTTPError))
 
 	return model.Success(ctx, existingResourceType, http.StatusOK)
 }
