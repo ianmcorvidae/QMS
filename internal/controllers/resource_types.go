@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/cyverse-de/echo-middleware/v2/params"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -98,11 +101,31 @@ func (s Server) AddResourceType(ctx echo.Context) error {
 // responses:
 //   200: resourceTypeDetails
 //   400: badRequestResponse
+//   404: notFoundResponse
 //   500: internalServerErrorResponse
 
 // GetResourceTypeDetails is the handler for the GET /v1/admin/resource-types/{resource-type-id} endpoint.
 func (s Server) GetResourceTypeDetails(ctx echo.Context) error {
-	return model.Success(ctx, &model.ResourceType{}, http.StatusOK)
+	var err error
+
+	// Extract and validate the resource type ID.
+	resourceTypeID, err := params.ValidatedPathParam(ctx, "resource_type_id", "uuid_rfc4122")
+	if err != nil {
+		return model.Error(ctx, "the resource type ID must be a valid UUID", http.StatusBadRequest)
+	}
+
+	// Look up the resource type.
+	resourceType := model.ResourceType{ID: &resourceTypeID}
+	err = s.GORMDB.Take(&resourceType).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		msg := fmt.Sprintf("resource type not found: %s", resourceTypeID)
+		return model.Error(ctx, msg, http.StatusNotFound)
+	} else if err != nil {
+		msg := fmt.Sprintf("unable to look up the resource type: %s", err)
+		return model.Error(ctx, msg, http.StatusInternalServerError)
+	}
+
+	return model.Success(ctx, &resourceType, http.StatusOK)
 }
 
 // swagger:route PUT /v1/admin/resource-types/{resource-type-id} admin-resource-types updateResourceType

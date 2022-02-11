@@ -67,6 +67,7 @@ func RegisterHandlers(s controllers.Server) {
 	adminResourceTypes := admin.Group("/resource-types")
 	adminResourceTypes.GET("", s.ListResourceTypes)
 	adminResourceTypes.POST("", s.AddResourceType)
+	adminResourceTypes.GET("/:resource_type_id", s.GetResourceTypeDetails)
 
 	// Admin plan quota default endpoints.
 	admin.POST("/planQuotaDefault", s.AddPlanQuotaDefault)
