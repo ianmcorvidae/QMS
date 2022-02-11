@@ -19,7 +19,10 @@ import (
 	"github.com/cyverse/QMS/internal/model"
 )
 
-// Error Response
+// Error
+//
+// Having the same object definition for multiple HTTP response status codes seems to confuse ReDoc, so we're using
+// aliases as a workaround.
 //
 // swagger:response errorResponse
 type ErrorResponse struct {
@@ -35,40 +38,28 @@ type ErrorResponse struct {
 	}
 }
 
-// Bad Request Response
-//
-// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
-// a workaround.
+// Bad Request
 //
 // swagger:response badRequestResponse
 type BadRequestResponse struct {
 	ErrorResponse
 }
 
-// Not Found Response
-//
-// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
-// a workaround.
+// Not Found
 //
 // swagger:response notFoundResponse
 type NotFoundResponse struct {
 	ErrorResponse
 }
 
-// Conflict Response
-//
-// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
-// a workaround.
+// Conflict
 //
 // swagger:response conflictResponse
 type ConflictResponse struct {
 	ErrorResponse
 }
 
-// Internal Server Error Response
-//
-// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
-// a workaround.
+// Internal Server Error
 //
 // swagger:response internalServerErrorResponse
 type internalServerErrorResponse struct {
@@ -86,7 +77,8 @@ type ResponseBodyWrapper struct {
 	Status string `json:"status"`
 }
 
-// General information about the service
+// Service Information
+//
 // swagger:response rootResponse
 type RootResponseWrapper struct {
 
@@ -99,7 +91,7 @@ type RootResponseWrapper struct {
 	}
 }
 
-// General information about a service API version
+// Service API Version Information
 //
 // swagger:response apiVersionResponse
 type APIVersionResponseWrapper struct {
