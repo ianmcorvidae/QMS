@@ -20,7 +20,7 @@ import (
 //
 // responses:
 //   200: plansResponse
-//   404: errorResponse
+//   500: internalServerErrorResponse
 func (s Server) GetAllPlans(ctx echo.Context) error {
 	data := []model.Plan{}
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -40,7 +40,8 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 //
 // responses:
 //   200: planResponse
-//   500: errorResponse
+//   400: badRequestResponse
+//   500: internalServerErrorResponse
 func (s Server) GetPlanByID(ctx echo.Context) error {
 	plan_id := ctx.Param("plan_id")
 	if plan_id == "" {

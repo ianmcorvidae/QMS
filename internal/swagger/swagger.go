@@ -35,6 +35,46 @@ type ErrorResponse struct {
 	}
 }
 
+// Bad Request Response
+//
+// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
+// a workaround.
+//
+// swagger:response badRequestResponse
+type BadRequestResponse struct {
+	ErrorResponse
+}
+
+// Not Found Response
+//
+// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
+// a workaround.
+//
+// swagger:response notFoundResponse
+type NotFoundResponse struct {
+	ErrorResponse
+}
+
+// Conflict Response
+//
+// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
+// a workaround.
+//
+// swagger:response conflictResponse
+type ConflictResponse struct {
+	ErrorResponse
+}
+
+// Internal Server Error Response
+//
+// Having the same object definition for multiple response codes seems to confuse ReDoc, so we're using aliases as
+// a workaround.
+//
+// swagger:response internalServerErrorResponse
+type internalServerErrorResponse struct {
+	ErrorResponse
+}
+
 // Documentation for the successful response body wrapper. The `Error` field could be included here as well, but it's
 // being omitted for now simply because it produces less confusing documentation when the erorr and success response
 // bodies are treated separately.
