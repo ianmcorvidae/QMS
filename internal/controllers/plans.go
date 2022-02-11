@@ -142,39 +142,6 @@ func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
 }
 
-func (s Server) UpdateUserPlanDetails(ctx echo.Context) error {
-	planname := ctx.Param("plan_name")
-	if planname == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid plan name", http.StatusBadRequest))
-	}
-	username := ctx.Param("user_name")
-	if username == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid username", http.StatusBadRequest))
-	}
-	var user = model.User{UserName: username}
-	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("user not found: "+username, http.StatusInternalServerError))
-	}
-	userID := *user.ID
-	var plan = model.Plan{Name: planname}
-	err = s.GORMDB.Debug().Find(&plan, "name=?", planname).Error
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("plan name not found", http.StatusInternalServerError))
-	}
-	planId := *plan.ID
-	var req = model.UserPlan{AddedBy: "Admin", LastModifiedBy: "Admin", UserID: &userID}
-	err = s.GORMDB.Debug().Model(&req).Where("user_id=?", userID).Update("plan_id", planId).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
-}
-
 func (s Server) AddQuota(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
@@ -211,14 +178,20 @@ func (s Server) AddQuota(ctx echo.Context) error {
 	}
 	userID := *user.ID
 	var userPlan = model.UserPlan{}
-	err = s.GORMDB.Debug().Find(&userPlan, "user_id=?", userID).Error
+	err = s.GORMDB.Debug().
+		Find(&userPlan, "user_id=?", userID).Error
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError,
 			model.ErrorResponse("user plan name not found for user: "+username, http.StatusInternalServerError))
 	}
 	userPlanId := *userPlan.ID
-	var req = model.Quota{UserPlanID: &userPlanId, Quota: quotaValueFloat, ResourceTypeID: &resourceID}
-	err = s.GORMDB.Debug().Create(&req).Error
+	var quota = model.Quota{
+		UserPlanID:     &userPlanId,
+		Quota:          quotaValueFloat,
+		ResourceTypeID: &resourceID,
+	}
+	err = s.GORMDB.Debug().
+		Create(&quota).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
