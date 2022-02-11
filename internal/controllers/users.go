@@ -27,11 +27,12 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 }
 
 type PlanDetails struct {
-	UserId *string
-	Name   string
-	Usage  string
-	Quota  float64
-	Unit   string
+	UserName string
+	UserId   *string
+	Name     string
+	Usage    string
+	Quota    float64
+	Unit     string
 }
 
 type Result struct {

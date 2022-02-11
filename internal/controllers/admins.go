@@ -34,8 +34,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		req UpdateUsagesReq
 	)
 	if err = ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse(err.Error(), http.StatusBadRequest))
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
 	effectiveDate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
@@ -102,13 +101,9 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	return model.Success(ctx, "Success", http.StatusOK)
 }
 
-func (s Server) GetAllActiveUsage(ctx echo.Context) error {
+func (s Server) GetAllActiveUsageOfUser(ctx echo.Context) error {
 	var err error
-	resource := ctx.QueryParam("resource_type")
-	if resource == "" {
-		return model.Error(ctx, "invalid resource name", http.StatusBadRequest)
-	}
-	username := ctx.QueryParam("username")
+	username := ctx.Param("username")
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
@@ -121,32 +116,25 @@ func (s Server) GetAllActiveUsage(ctx echo.Context) error {
 	if username != "" {
 		usage.Where("users.user_name = ?", username)
 	}
-	if resource != "" {
-		usage.Where("resource_types.name = ?", resource)
-	}
 	if err = usage.Find(&usageData).Error; err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
 	return model.Success(ctx, usageData, http.StatusOK)
 }
 
-func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
-	username := ctx.Param("username")
-	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
-	}
+func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
 	var planData []PlanDetails
-	err := s.GORMDB.Raw(`select plans.name,usages.usage,quotas.quota,resource_types.unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join usages on user_plans.id=usages.user_plan_id
-	join quotas on user_plans.id=usages.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	user_plans.effective_start_date<=cast(now() as date) and
-	user_plans.effective_end_date>=cast(now() as date) ands
-	users.username=?`, username).Scan(&planData).Error
+	err := s.GORMDB.
+		Table("user_plans").
+		Joins("join plans ON plans.id=user_plans.plan_id").
+		Joins("join usages ON user_plans.id=usages.user_plan_id").
+		Joins("join quota ON user_plans.id=usages.user_plan_id").
+		Joins("join resource_types ON resource_types.id=usages.resource_type_id").
+		Joins("join users ON users.id=user_plans.user_id").
+		Where("user_plans.effective_start_date<=cast(now() as date) " +
+			"AND user_plans.effective_end_date>=cast(now() as date) " +
+			"AND usages.resource_type_id=quota.resource_type_id").
+		Scan(&planData).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
