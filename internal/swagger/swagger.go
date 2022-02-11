@@ -19,7 +19,10 @@ import (
 	"github.com/cyverse/QMS/internal/model"
 )
 
-// Error Response
+// Error
+//
+// Having the same object definition for multiple HTTP response status codes seems to confuse ReDoc, so we're using
+// aliases as a workaround.
 //
 // swagger:response errorResponse
 type ErrorResponse struct {
@@ -35,6 +38,34 @@ type ErrorResponse struct {
 	}
 }
 
+// Bad Request
+//
+// swagger:response badRequestResponse
+type BadRequestResponse struct {
+	ErrorResponse
+}
+
+// Not Found
+//
+// swagger:response notFoundResponse
+type NotFoundResponse struct {
+	ErrorResponse
+}
+
+// Conflict
+//
+// swagger:response conflictResponse
+type ConflictResponse struct {
+	ErrorResponse
+}
+
+// Internal Server Error
+//
+// swagger:response InternalServerErrorResponse
+type InternalServerErrorResponse struct {
+	ErrorResponse
+}
+
 // Documentation for the successful response body wrapper. The `Error` field could be included here as well, but it's
 // being omitted for now simply because it produces less confusing documentation when the erorr and success response
 // bodies are treated separately.
@@ -46,7 +77,8 @@ type ResponseBodyWrapper struct {
 	Status string `json:"status"`
 }
 
-// General information about the service
+// Service Information
+//
 // swagger:response rootResponse
 type RootResponseWrapper struct {
 
@@ -59,7 +91,7 @@ type RootResponseWrapper struct {
 	}
 }
 
-// General information about a service API version
+// Service API Version Information
 //
 // swagger:response apiVersionResponse
 type APIVersionResponseWrapper struct {
@@ -113,7 +145,7 @@ type PlanResponseWrapper struct {
 	}
 }
 
-//Users
+// Users
 
 // User Listing
 //
@@ -127,4 +159,74 @@ type UserListingResponseWrapper struct {
 		// The user listing
 		Result []model.User `json:"result"`
 	}
+}
+
+// Resource Types
+
+// Resource Type Listing
+//
+// swagger:response resourceTypeListing
+type ResourceTypeListingWrapper struct {
+
+	// in: body
+	Body struct {
+		ResponseBodyWrapper
+
+		// The resource type listing
+		Result []model.ResourceType `json:"result"`
+	}
+}
+
+// Resource Type Details
+//
+// swagger:response resourceTypeDetails
+type ResourceTypeDetailsResponseWrapper struct {
+
+	// in: body
+	Body struct {
+		ResponseBodyWrapper
+
+		// The resource type information
+		Result model.ResourceType `json:"result"`
+	}
+}
+
+// Parameters for the endpoint used to add resource types.
+//
+// swagger:parameters addResourceType
+type AddResourceTypeParameters struct {
+
+	// The resource type information
+	//
+	// in: body
+	Body model.ResourceType
+}
+
+// Parameters for the endpoint used to get resource type details.
+//
+// swagger:parameters getResourceTypeDetails
+type GetResourceTypeDetailsParameters struct {
+
+	// The resource type ID
+	//
+	// in: path
+	// required: true
+	ResourceTypeID string `json:"resource_type_id"`
+}
+
+// Parameters for the endpoint used to update resource types.
+//
+// swagger:parameters updateResourceType
+type UpdateResourceTypeParameters struct {
+
+	// The resource type ID
+	//
+	// in: path
+	// required: true
+	ResourceTypeID string `json:"resource_type_id"`
+
+	// The resource type details
+	//
+	// in: body
+	Body model.ResourceType
 }

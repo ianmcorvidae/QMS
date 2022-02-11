@@ -57,3 +57,8 @@ func ErrorResponse(errStr string, status int) Response {
 func Error(ctx echo.Context, errStr string, status int) error {
 	return ctx.JSON(status, ErrorResponse(errStr, status))
 }
+
+// HTTPError sends a basic error response to the caller for the given instance of echo.HTTPError.
+func HTTPError(ctx echo.Context, err *echo.HTTPError) error {
+	return ctx.JSON(err.Code, ErrorResponse(err.Error(), err.Code))
+}

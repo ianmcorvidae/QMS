@@ -20,7 +20,7 @@ import (
 //
 // responses:
 //   200: plansResponse
-//   404: errorResponse
+//   500: internalServerErrorResponse
 func (s Server) GetAllPlans(ctx echo.Context) error {
 	data := []model.Plan{}
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -40,7 +40,8 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 //
 // responses:
 //   200: planResponse
-//   500: errorResponse
+//   400: badRequestResponse
+//   500: internalServerErrorResponse
 func (s Server) GetPlanByID(ctx echo.Context) error {
 	plan_id := ctx.Param("plan_id")
 	if plan_id == "" {
@@ -77,25 +78,6 @@ func (s Server) AddPlan(ctx echo.Context) error {
 	}
 	var req = model.Plan{Name: planname, Description: description}
 	err := s.GORMDB.Debug().Create(&req).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse("Success", http.StatusOK))
-}
-
-func (s Server) AddResourceType(ctx echo.Context) error {
-	name := ctx.Param("resource_name")
-	if name == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid Resource name", http.StatusBadRequest))
-	}
-	unit := ctx.Param("resource_unit")
-	if unit == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid resource Unit", http.StatusBadRequest))
-	}
-	var resource_type = model.ResourceType{Name: name, Unit: unit}
-	err := s.GORMDB.Debug().Create(&resource_type).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
