@@ -34,20 +34,6 @@ type PlanDetails struct {
 	Unit   string
 }
 
-type QuotaDetails struct {
-	PlanName     string
-	Quota        float64
-	ResourceName string
-	Unit         string
-}
-
-type UsageDetails struct {
-	PlanName     string
-	ResourceName string
-	Usage        string
-	Unit         string
-}
-
 type Result struct {
 	ID             *string
 	UserName       string
