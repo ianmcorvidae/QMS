@@ -12,6 +12,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// extractResourceTypeID extracts and validates the resource type ID path parameter.
+func extractResourceTypeID(ctx echo.Context) (string, error) {
+	resourceTypeID, err := params.ValidatedPathParam(ctx, "resource_type_id", "uuid_rfc4122")
+	if err != nil {
+		return "", fmt.Errorf("the resource type ID must be a valid UUID")
+	}
+	return resourceTypeID, nil
+}
+
 // swagger:route GET /v1/resource-types resource-types listResourceTypes
 //
 // List Resource Types
@@ -109,9 +118,9 @@ func (s Server) GetResourceTypeDetails(ctx echo.Context) error {
 	var err error
 
 	// Extract and validate the resource type ID.
-	resourceTypeID, err := params.ValidatedPathParam(ctx, "resource_type_id", "uuid_rfc4122")
+	resourceTypeID, err := extractResourceTypeID(ctx)
 	if err != nil {
-		return model.Error(ctx, "the resource type ID must be a valid UUID", http.StatusBadRequest)
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
 
 	// Look up the resource type.
@@ -142,5 +151,54 @@ func (s Server) GetResourceTypeDetails(ctx echo.Context) error {
 
 // UpdatedResourceType is the handler for the PUT /v1/admin/resource-types/{resource-type-id} endpoint.
 func (s Server) UpdateResourceType(ctx echo.Context) error {
-	return model.Success(ctx, &model.ResourceType{}, http.StatusOK)
+	var err error
+
+	// Extract and validate the resource type ID.
+	resourceTypeID, err := extractResourceTypeID(ctx)
+	if err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
+	}
+
+	//  Extract and validate the request body.
+	var inboundResourceType model.ResourceType
+	if err = ctx.Bind(&inboundResourceType); err != nil {
+		msg := fmt.Sprintf("invalid request body: %s", err)
+		return model.Error(ctx, msg, http.StatusBadRequest)
+	}
+	if inboundResourceType.Name == "" || inboundResourceType.Unit == "" {
+		msg := "the resource type name and unit are both required"
+		return model.Error(ctx, msg, http.StatusBadRequest)
+	}
+
+	// Perform these steps in a transaction to ensure consistency.
+	existingResourceType := model.ResourceType{ID: &resourceTypeID}
+	err = s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		var err error
+
+		// Verify that the resource type exists.
+		err = tx.Take(&existingResourceType).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			msg := fmt.Sprintf("resource type not found: %s", resourceTypeID)
+			return echo.NewHTTPError(http.StatusNotFound, msg)
+		} else if err != nil {
+			msg := fmt.Sprintf("unable to look up the resource type: %s", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, msg)
+		}
+
+		// Update the resource type.
+		existingResourceType.Name = inboundResourceType.Name
+		existingResourceType.Unit = inboundResourceType.Unit
+		err = tx.Save(&existingResourceType).Error
+		if err != nil {
+			msg := fmt.Sprintf("unable to update the resource type: %s", err)
+			return echo.NewHTTPError(http.StatusInternalServerError, msg)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return model.HTTPError(ctx, err.(*echo.HTTPError))
+	}
+
+	return model.Success(ctx, existingResourceType, http.StatusOK)
 }
