@@ -61,8 +61,8 @@ type ConflictResponse struct {
 
 // Internal Server Error
 //
-// swagger:response internalServerErrorResponse
-type internalServerErrorResponse struct {
+// swagger:response InternalServerErrorResponse
+type InternalServerErrorResponse struct {
 	ErrorResponse
 }
 
