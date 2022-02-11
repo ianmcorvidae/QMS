@@ -44,7 +44,7 @@ func RegisterHandlers(s controllers.Server) {
 	users.GET("/:username/plan", s.GetUserPlanDetails)
 
 	// Resources.
-	v1.GET("/resources", s.GetAllResources)
+	// v1.GET("/resources", s.GetAllResources)
 
 	// Admin endpoints.
 	admin := v1.Group("/admin")
