@@ -68,8 +68,7 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 func (s Server) AddUser(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid username", http.StatusBadRequest))
+		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	var user = model.User{UserName: username}
 	err := s.GORMDB.Debug().Create(&user).Error
@@ -203,18 +202,15 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 func (s Server) AddUsages(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid username", http.StatusBadRequest))
+		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	resourceName := ctx.Param("resource_name")
 	if resourceName == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid resource name", http.StatusBadRequest))
+		return model.Error(ctx, "invalid resource name", http.StatusBadRequest)
 	}
 	usageValueString := ctx.Param("usage_value")
 	if usageValueString == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid usage value", http.StatusBadRequest))
+		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
 	}
 	UsageValueFloat, err := ParseFloat(usageValueString)
 	if err != nil {

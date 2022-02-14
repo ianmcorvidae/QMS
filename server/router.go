@@ -50,7 +50,7 @@ func RegisterHandlers(s controllers.Server) {
 	admin := v1.Group("/admin")
 
 	// Admin usage endpoints.
-	admin.GET("/usages/:username", s.GetAllActiveUsageOfUser)
+	admin.GET("/usages/:username", s.GetAllUsageOfUser)
 	// Updates the usage of a particular user and puts an update record in the update table.
 	admin.PUT("/usages", s.UpdateUsages)
 	admin.GET("/all_active_users", s.GetAllActiveUserPlans)

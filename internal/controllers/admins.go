@@ -101,7 +101,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	return model.Success(ctx, "Success", http.StatusOK)
 }
 
-func (s Server) GetAllActiveUsageOfUser(ctx echo.Context) error {
+func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	var err error
 	username := ctx.Param("username")
 	if username == "" {

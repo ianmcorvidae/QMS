@@ -2,7 +2,17 @@ package model
 
 // ResourceType define the structure for ResourceTypes.
 type ResourceType struct {
-	ID   *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	Name string  `gorm:"not null;unique" json:"name"`
-	Unit string  `gorm:"not null;unique" json:"unit"`
+	// The resource type ID
+	//
+	// required: true
+	// readOnly: true
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+	// The resource type name
+	//
+	// required: true
+	Name string `gorm:"not null;unique" json:"name"`
+	// The unit of measure used for the resource type
+	//
+	// required: true
+	Unit string `gorm:"not null;unique" json:"unit"`
 }

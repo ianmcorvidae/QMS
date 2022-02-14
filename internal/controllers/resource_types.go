@@ -197,9 +197,8 @@ func (s Server) UpdateResourceType(ctx echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		return model.HTTPError(ctx, err.(*echo.HTTPError))
 	}
-	//return model.HTTPError(ctx, err.(*echo.HTTPError))
 
 	return model.Success(ctx, existingResourceType, http.StatusOK)
 }
