@@ -64,19 +64,30 @@ type Plan struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+type PlanDetail struct {
+	PlanName    string `json:"plan_name"`
+	Description string `json:"description"`
+}
 
 func (s Server) AddPlan(ctx echo.Context) error {
-	planName := ctx.Param("plan_name")
-	if planName == "" {
+	var (
+		err  error
+		plan PlanDetail
+	)
+	fmt.Println(plan)
+	if err = ctx.Bind(&plan); err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
+	}
+	fmt.Println(plan)
+
+	if plan.PlanName == "" {
 		return model.Error(ctx, "invalid plan name", http.StatusBadRequest)
 	}
-	description := ctx.Param("description")
-	if description == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse("invalid plan description", http.StatusBadRequest))
+	if plan.Description == "" {
+		return model.Error(ctx, "invalid plan description", http.StatusBadRequest)
 	}
-	var req = model.Plan{Name: planName, Description: description}
-	err := s.GORMDB.Debug().Create(&req).Error
+	var req = model.Plan{Name: plan.PlanName, Description: plan.Description}
+	err = s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
