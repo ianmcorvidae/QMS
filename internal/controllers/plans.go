@@ -74,12 +74,9 @@ func (s Server) AddPlan(ctx echo.Context) error {
 		err  error
 		plan PlanDetail
 	)
-	fmt.Println(plan)
 	if err = ctx.Bind(&plan); err != nil {
 		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	fmt.Println(plan)
-
 	if plan.PlanName == "" {
 		return model.Error(ctx, "invalid plan name", http.StatusBadRequest)
 	}
