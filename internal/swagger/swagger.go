@@ -19,7 +19,11 @@ import (
 	"github.com/cyverse/QMS/internal/model"
 )
 
-// ErrorResponse
+// Note: the comments in this package don't conform to the convention of including the name of the entity that the
+// comment describes. The reason for this is because the comments appear as-is in the API documentation. Confusing
+// documentation is produced when the structure names appear in the API documentation.
+
+// Error
 //
 // Having the same object definition for multiple HTTP response status codes seems to confuse ReDoc, so we're using
 // aliases as a workaround.
@@ -38,35 +42,35 @@ type ErrorResponse struct {
 	}
 }
 
-// BadRequestResponse
+// Bad Request
 //
 // swagger:response badRequestResponse
 type BadRequestResponse struct {
 	ErrorResponse
 }
 
-// NotFoundResponse
+// Not Found
 //
 // swagger:response notFoundResponse
 type NotFoundResponse struct {
 	ErrorResponse
 }
 
-// ConflictResponse
+// Conflict
 //
 // swagger:response conflictResponse
 type ConflictResponse struct {
 	ErrorResponse
 }
 
-// InternalServerErrorResponse
+// Internal Server Error
 //
-// swagger:response InternalServerErrorResponse
+// swagger:response internalServerErrorResponse
 type InternalServerErrorResponse struct {
 	ErrorResponse
 }
 
-// ResponseBodyWrapper Documentation for the successful response body wrapper. The `Error` field could be included here as well, but it's
+// Documentation for the successful response body wrapper. The `Error` field could be included here as well, but it's
 // being omitted for now simply because it produces less confusing documentation when the erorr and success response
 // bodies are treated separately.
 //
@@ -77,7 +81,7 @@ type ResponseBodyWrapper struct {
 	Status string `json:"status"`
 }
 
-// RootResponseWrapper Service Information
+// Service Information
 //
 // swagger:response rootResponse
 type RootResponseWrapper struct {
@@ -91,7 +95,7 @@ type RootResponseWrapper struct {
 	}
 }
 
-// APIVersionResponseWrapper
+// Service API Version Information
 //
 // swagger:response apiVersionResponse
 type APIVersionResponseWrapper struct {
@@ -105,7 +109,7 @@ type APIVersionResponseWrapper struct {
 	}
 }
 
-// PlansResponseWrapper
+// Plan Listing
 //
 // swagger:response plansResponse
 type PlansResponseWrapper struct {
@@ -119,7 +123,7 @@ type PlansResponseWrapper struct {
 	}
 }
 
-// PlanIDParameter
+// Plan ID
 //
 // swagger:parameters getPlanByID
 type PlanIDParameter struct {
@@ -131,7 +135,7 @@ type PlanIDParameter struct {
 	PlanID string `json:"plan_id"`
 }
 
-// PlanResponseWrapper
+// Plan Information
 //
 // swagger:response planResponse
 type PlanResponseWrapper struct {
@@ -147,7 +151,7 @@ type PlanResponseWrapper struct {
 
 // Users
 
-// UserListingResponseWrapper
+// User Listing
 //
 // swagger:response userListing
 type UserListingResponseWrapper struct {
@@ -163,7 +167,7 @@ type UserListingResponseWrapper struct {
 
 // Resource Types
 
-// ResourceTypeListingWrapper
+// Resource Type Listing
 //
 // swagger:response resourceTypeListing
 type ResourceTypeListingWrapper struct {
@@ -177,7 +181,7 @@ type ResourceTypeListingWrapper struct {
 	}
 }
 
-// ResourceTypeDetailsResponseWrapper
+// Resource Type Details
 //
 // swagger:response resourceTypeDetails
 type ResourceTypeDetailsResponseWrapper struct {
@@ -191,7 +195,7 @@ type ResourceTypeDetailsResponseWrapper struct {
 	}
 }
 
-// AddResourceTypeParameters Parameters for the endpoint used to add resource types.
+// Parameters for the endpoint used to add resource types.
 //
 // swagger:parameters addResourceType
 type AddResourceTypeParameters struct {
@@ -202,7 +206,7 @@ type AddResourceTypeParameters struct {
 	Body model.ResourceType
 }
 
-// GetResourceTypeDetailsParameters Parameters for the endpoint used to get resource type details.
+// Parameters for the endpoint used to get resource type details.
 //
 // swagger:parameters getResourceTypeDetails
 type GetResourceTypeDetailsParameters struct {
@@ -214,7 +218,7 @@ type GetResourceTypeDetailsParameters struct {
 	ResourceTypeID string `json:"resource_type_id"`
 }
 
-// UpdateResourceTypeParameters Parameters for the endpoint used to update resource types.
+// Parameters for the endpoint used to update resource types.
 //
 // swagger:parameters updateResourceType
 type UpdateResourceTypeParameters struct {

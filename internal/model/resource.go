@@ -1,6 +1,8 @@
 package model
 
-// ResourceType define the structure for ResourceTypes.
+// ResourceType defines the structure for ResourceTypes.
+//
+// swagger:model
 type ResourceType struct {
 	// The resource type ID
 	//

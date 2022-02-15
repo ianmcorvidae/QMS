@@ -16,7 +16,7 @@ import (
 //
 // responses:
 //   200: userListing
-//   404: errorResponse
+//   500: internalServerErrorResponse
 func (s Server) GetAllUsers(ctx echo.Context) error {
 	var data []model.User
 	err := s.GORMDB.Debug().Find(&data).Error
