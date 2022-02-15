@@ -19,6 +19,10 @@ import (
 	"github.com/cyverse/QMS/internal/model"
 )
 
+// Note: the comments in this package don't conform to the convention of including the name of the entity that the
+// comment describes. The reason for this is because the comments appear as-is in the API documentation. Confusing
+// documentation is produced when the structure names appear in the API documentation.
+
 // Error
 //
 // Having the same object definition for multiple HTTP response status codes seems to confuse ReDoc, so we're using
@@ -61,7 +65,7 @@ type ConflictResponse struct {
 
 // Internal Server Error
 //
-// swagger:response InternalServerErrorResponse
+// swagger:response internalServerErrorResponse
 type InternalServerErrorResponse struct {
 	ErrorResponse
 }
@@ -119,7 +123,7 @@ type PlansResponseWrapper struct {
 	}
 }
 
-// Plan Information
+// Plan ID
 //
 // swagger:parameters getPlanByID
 type PlanIDParameter struct {

@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Quotas define the structure for an Api Plan and Quota.
+// Quota define the structure for an Api Plan and Quota.
 type Quota struct {
 	gorm.Model
 	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`

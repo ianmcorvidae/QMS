@@ -48,7 +48,7 @@ func (s Server) RootHandler(ctx echo.Context) error {
 //
 // General API Version 1 Information
 //
-// LIsts general information about version 1 of the service API.
+// Lists general information about version 1 of the service API.
 //
 // responses:
 //   200: apiVersionResponse

@@ -14,24 +14,6 @@ const (
 	UpdateTypeAdd = "ADD"
 )
 
-type AdminQuotaDetails struct {
-	UserName     string
-	UserID       string
-	PlanName     string
-	Quota        float64
-	ResourceName string
-	Unit         string
-}
-
-type AdminUsageDetails struct {
-	UserName     string
-	UserID       string
-	PlanName     string
-	ResourceName string
-	Usage        float64
-	Unit         string
-}
-
 type UpdateUsagesReq struct {
 	UserName             string  `json:"username"`
 	ResourceType         string  `json:"resource_type"`
@@ -52,10 +34,9 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		req UpdateUsagesReq
 	)
 	if err = ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest,
-			model.ErrorResponse(err.Error(), http.StatusBadRequest))
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	effectivedate, err := time.Parse("2006-01-02", req.EffectiveDate)
+	effectiveDate, err := time.Parse("2006-01-02", req.EffectiveDate)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
@@ -65,7 +46,7 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 		return model.Error(ctx, "resource type not found.", http.StatusInternalServerError)
 	}
 	resourceTypeID := *resourceType.ID
-	usageDetails := []model.Usage{}
+	var usageDetails []model.Usage
 	err = s.GORMDB.Debug().
 		Table("user_plans").
 		Select("usages.*").
@@ -78,20 +59,20 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	for _, usagerec := range usageDetails {
-		usagerec.UpdatedAt = effectivedate
+	for _, usageRec := range usageDetails {
+		usageRec.UpdatedAt = effectiveDate
 		value := req.UsageAdjustmentValue
 		switch req.UpdateType {
 		case UpdateTypeSet:
-			usagerec.Usage = value
+			usageRec.Usage = value
 		case UpdateTypeAdd:
-			usagerec.Usage += value
+			usageRec.Usage += value
 		default:
 			msg := fmt.Sprintf("invalid update type: %s", req.UpdateType)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
 		err := s.GORMDB.Debug().
-			Updates(&usagerec).
+			Updates(&usageRec).
 			Where("resource_type_id=?", resourceTypeID).Error
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
@@ -120,69 +101,50 @@ func (s Server) UpdateUsages(ctx echo.Context) error {
 	return model.Success(ctx, "Success", http.StatusOK)
 }
 
-func (s Server) GetAllActiveUsage(ctx echo.Context) error {
+func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	var err error
-	resource := ctx.QueryParam("resource")
-	resourcefilter := ""
-	if resource != "" {
-		resourcefilter = ` and resource_types.name = '` + resource + `'`
-	}
-	username := ctx.QueryParam("username")
-	usernamefilter := ""
-	if username != "" {
-		usernamefilter = ` and users.username = '` + username + `'`
-	}
-	plandata := []AdminUsageDetails{}
-	if err = s.GORMDB.Debug().Raw(
-		`
-			SELECT users.user_name,
-				users.id as user_id,
-				plans.name as plan_name,
-				usages.usage,
-				resource_types.unit,
-				resource_types.name as resource_name
-			FROM user_plans
-			JOIN plans ON plans.id = user_plans.plan_id
-			JOIN usages ON user_plans.id=usages.user_plan_id
-			JOIN quotas ON user_plans.id=quotas.user_plan_id
-			JOIN resource_types ON resource_types.id=quotas.resource_type_id
-			JOIN users ON users.id = user_plans.user_id
-			WHERE cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date
-		` + usernamefilter + resourcefilter,
-	).Scan(&plandata).Error; err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
-}
-
-func (s Server) GetAllUserActivePlans(ctx echo.Context) error {
 	username := ctx.Param("username")
 	if username == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("Invalid UserName", http.StatusBadRequest))
+		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	plandata := []PlanDetails{}
-	err := s.GORMDB.Raw(`select plans.name,usages.usage,quotas.quota,resource_types.unit from
-	user_plans
-	join plans on plans.id=user_plans.plan_id
-	join usages on user_plans.id=usages.user_plan_id
-	join quotas on user_plans.id=usages.user_plan_id
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id=user_plans.user_id
-	where
-	user_plans.effective_start_date<=cast(now() as date) and
-	user_plans.effective_end_date>=cast(now() as date) ands
-	users.username=?`, username).Scan(&plandata).Error
+	var usageData []model.Usage
+	usage := s.GORMDB.Debug().
+		Joins("JOIN user_plans ON user_plans.id = usages.user_plan_id").
+		Joins("JOIN resource_types ON resource_types.id = usages.resource_type_id").
+		Joins("JOIN users ON users.id = user_plans.user_id").
+		Where("cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date")
+	if username != "" {
+		usage.Where("users.user_name = ?", username)
+	}
+	if err = usage.Find(&usageData).Error; err != nil {
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+	}
+	return model.Success(ctx, usageData, http.StatusOK)
+}
+
+func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
+	var planData []PlanDetails
+	err := s.GORMDB.
+		Table("user_plans").
+		Joins("join plans ON plans.id=user_plans.plan_id").
+		Joins("join usages ON user_plans.id=usages.user_plan_id").
+		Joins("join quota ON user_plans.id=usages.user_plan_id").
+		Joins("join resource_types ON resource_types.id=usages.resource_type_id").
+		Joins("join users ON users.id=user_plans.user_id").
+		Where("user_plans.effective_start_date<=cast(now() as date)").
+		Where("user_plans.effective_end_date>=cast(now() as date)").
+		Where("usages.resource_type_id=quota.resource_type_id").
+		Scan(&planData).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(plandata, http.StatusOK))
+	return model.Success(ctx, planData, http.StatusOK)
 }
 
 func (s Server) AddUpdateOperation(ctx echo.Context) error {
 	updateOperationName := ctx.Param("update_operation")
 	if updateOperationName == "" {
-		return ctx.JSON(http.StatusBadRequest, model.ErrorResponse("invalid update operation", http.StatusBadRequest))
+		return model.Error(ctx, "invalid update operation", http.StatusBadRequest)
 	}
 	var updateOperation = model.UpdateOperation{Name: updateOperationName}
 	err := s.GORMDB.Debug().Create(&updateOperation).Error

@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Usages define the structure for API Usages.
+// Usage define the structure for API Usages.
 type Usage struct {
 	gorm.Model
 	ID             *string      `gorm:"json:id" type:"uuid;default:uuid_generate_v1()"`
