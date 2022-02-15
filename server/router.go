@@ -56,7 +56,7 @@ func RegisterHandlers(s controllers.Server) {
 
 	// Admin user endpoints.
 	admin.GET("/users", s.GetAllUsers)
-	admin.POST("/users/:user_name", s.AddUser)
+	admin.PUT("/users/:user_name", s.AddUser)
 	admin.PUT("/users/:user_name/:plan_name", s.UpdateUserPlan)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
 
