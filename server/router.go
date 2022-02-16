@@ -37,14 +37,11 @@ func RegisterHandlers(s controllers.Server) {
 	plans := v1.Group("/plans")
 	plans.GET("", s.GetAllPlans)
 	plans.GET("/:plan_id", s.GetPlanByID)
-	plans.POST("/:plan_name/:description/add", s.AddPlan)
+	plans.POST("/add_plan", s.AddPlan)
 
 	// Users.
 	users := v1.Group("/users")
 	users.GET("/:username/plan", s.GetUserPlanDetails)
-
-	// Resources.
-	v1.GET("/resource-types", s.ListResourceTypes)
 
 	// Admin endpoints.
 	admin := v1.Group("/admin")
@@ -59,8 +56,8 @@ func RegisterHandlers(s controllers.Server) {
 
 	// Admin user endpoints.
 	admin.GET("/users", s.GetAllUsers)
-	admin.POST("/:user_name", s.AddUser)
-	admin.PUT("/user/:user_name/updatePlan/:plan_name", s.UpdateUserPlan)
+	admin.PUT("/users/:user_name", s.AddUser)
+	admin.PUT("/users/:user_name/:plan_name", s.UpdateUserPlan)
 	admin.POST("/users/:user_name/:resource_name/:quota_value", s.AddQuota)
 
 	// Admin resource type endpoints.
@@ -71,5 +68,5 @@ func RegisterHandlers(s controllers.Server) {
 	adminResourceTypes.PUT("/:resource_type_id", s.UpdateResourceType)
 
 	// Admin plan quota default endpoints.
-	admin.POST("/planQuotaDefault", s.AddPlanQuotaDefault)
+	admin.POST("/plan_quota_defaults", s.AddPlanQuotaDefault)
 }
