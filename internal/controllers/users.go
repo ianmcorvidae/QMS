@@ -208,7 +208,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if resourceName == "" {
 		return model.Error(ctx, "invalid resource name", http.StatusBadRequest)
 	}
-	usageValueString := ctx.Param("usage_value")
+	usageValueString := ctx.QueryParam("usage_value")
 	if usageValueString == "" {
 		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
 	}
