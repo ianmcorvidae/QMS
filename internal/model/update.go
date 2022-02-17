@@ -6,14 +6,24 @@ import (
 	"gorm.io/gorm"
 )
 
+// UpdateOperation defines the structure of an available update operation in the QMS database.
+//
+// swagger:model
 type UpdateOperation struct {
-	ID   *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	Name string  `gorm:"json:name"`
+	// The update operation ID
+	//
+	// required: true
+	// readOnly: true
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+	// The update operation name
+	//
+	// required: true
+	Name string `gorm:"type:text;not null;unique" json:"name"`
 }
 
 type TrackedMetric struct {
-	Quota string `gorm:"json:quota"`
-	Usage string `gorm:"json:usage"`
+	Quota string `gorm:"not null" json:"quota"`
+	Usage string `gorm:"not null" json:"usage"`
 }
 
 type Update struct {
