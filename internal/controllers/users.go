@@ -75,19 +75,19 @@ func (s Server) AddUser(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	userID := *user.ID
+	userID := user.ID
 	var plan = model.Plan{}
 	err = s.GORMDB.Debug().Find(&plan, "name=?", "Basic").Error
 	if err != nil {
 		return model.Error(ctx, "plan name not found.", http.StatusInternalServerError)
 	}
-	planId := *plan.ID
+	planId := plan.ID
 	startDate := time.Now()
 	endDate := startDate.AddDate(1, 0, 0)
 	var userPlan = model.UserPlan{
 		AddedBy:            "Admin",
-		UserID:             &userID,
-		PlanID:             &planId,
+		UserID:             userID,
+		PlanID:             planId,
 		EffectiveStartDate: startDate,
 		EffectiveEndDate:   endDate,
 	}
@@ -95,8 +95,8 @@ func (s Server) AddUser(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	storage := "STORAGE"
-	cpu := "CPU"
+	storage := "data.size"
+	cpu := "cpu.hours"
 	var storageResource = model.ResourceType{}
 	var cpuResource = model.ResourceType{}
 	err = s.GORMDB.Debug().
@@ -104,14 +104,14 @@ func (s Server) AddUser(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, "resource not Found: "+storage, http.StatusInternalServerError)
 	}
-	storageId := *storageResource.ID
+	storageId := storageResource.ID
 	err = s.GORMDB.Debug().
 		Find(&cpuResource, "name=?", cpu).Error
 	if err != nil {
 		return model.Error(ctx, "resource not found.: "+cpu, http.StatusInternalServerError)
 	}
-	cpuId := *cpuResource.ID
-	userPlanId := *userPlan.ID
+	cpuId := cpuResource.ID
+	userPlanId := userPlan.ID
 	var defaultStorageQuota = model.PlanQuotaDefault{}
 	err = s.GORMDB.Debug().
 		Find(&defaultStorageQuota, "resource_type_id=?", storageId).Error
@@ -131,14 +131,14 @@ func (s Server) AddUser(ctx echo.Context) error {
 	var userQuota = []model.Quota{
 		{
 			AddedBy:        "Admin",
-			UserPlanID:     &userPlanId,
-			ResourceTypeID: &storageId,
+			UserPlanID:     userPlanId,
+			ResourceTypeID: storageId,
 			Quota:          defaultStorageQuotaValue,
 		},
 		{
 			AddedBy:        "Admin",
-			UserPlanID:     &userPlanId,
-			ResourceTypeID: &cpuId,
+			UserPlanID:     userPlanId,
+			ResourceTypeID: cpuId,
 			Quota:          defaultCPUQuotaValue,
 		},
 	}
