@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/cyverse/QMS/internal/db"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
 )
@@ -70,11 +72,13 @@ func (s Server) AddUser(ctx echo.Context) error {
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	var user = model.User{UserName: username}
-	err := s.GORMDB.Debug().Create(&user).Error
+
+	// Either add the user to the database or look up the existing user information.
+	user, err := db.GetUser(s.GORMDB, username)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
+
 	userID := user.ID
 	var plan = model.Plan{}
 	err = s.GORMDB.Debug().Find(&plan, "name=?", "Basic").Error
@@ -88,8 +92,8 @@ func (s Server) AddUser(ctx echo.Context) error {
 		AddedBy:            "Admin",
 		UserID:             userID,
 		PlanID:             planId,
-		EffectiveStartDate: startDate,
-		EffectiveEndDate:   endDate,
+		EffectiveStartDate: &startDate,
+		EffectiveEndDate:   &endDate,
 	}
 	err = s.GORMDB.Debug().Create(&userPlan).Error
 	if err != nil {
@@ -212,27 +216,32 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if usageValueString == "" {
 		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
 	}
-	UsageValueFloat, err := ParseFloat(usageValueString)
+	usageValueFloat, err := ParseFloat(usageValueString)
 	if err != nil {
-		return model.Error(ctx, "invalid usage value", http.StatusInternalServerError)
+		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
 	}
-	var res = Result{}
-	err = s.GORMDB.
-		Table("user_plans").
-		Select("user_plans.id, users.user_name,plan_quota_defaults.resource_type_id ").
-		Joins("JOIN users on user_plans.user_id=users.id").
-		Joins("JOIN plan_quota_defaults on plan_quota_defaults.plan_id=user_plans.plan_id").
-		Joins("JOIN resource_types on resource_types.id=plan_quota_defaults.resource_type_id").
-		Where("users.user_name=? and resource_types.name=?", username, resourceName).
-		Scan(&res).Error
+
+	// Look up the currently active user plan, adding a default plan if one doesn't exist already.
+	userPlan, err := db.GetActiveUserPlan(s.GORMDB, username)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
+
+	// Look up the resource type.
+	resourceType, err := db.GetResourceTypeByName(s.GORMDB, resourceName)
+	if err != nil {
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+	}
+	if resourceType == nil {
+		return model.Error(ctx, fmt.Sprintf("resource type '%s' does not exist", resourceName), http.StatusBadRequest)
+	}
+
+	// Add the usage record.
 	var req = model.Usage{
-		Usage:          UsageValueFloat,
+		Usage:          usageValueFloat,
 		AddedBy:        "Admin",
-		UserPlanID:     res.ID,
-		ResourceTypeID: res.ResourceTypeId,
+		UserPlanID:     userPlan.ID,
+		ResourceTypeID: resourceType.ID,
 	}
 	err = s.GORMDB.Debug().Create(&req).Error
 	if err != nil {
