@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 
@@ -227,50 +228,35 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if usage.UsageValue < 0 {
 		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
 	}
+	err = s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		// Look up the currently active user plan, adding a default plan if one doesn't exist already.
+		userPlan, err := db.GetActiveUserPlan(tx, usage.Username)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
 
-	//username := ctx.Param("user_name")
-	//if username == "" {
-	//	return model.Error(ctx, "invalid username", http.StatusBadRequest)
-	//}
-	//resourceName := ctx.Param("resource_name")
-	//if resourceName == "" {
-	//	return model.Error(ctx, "invalid resource name", http.StatusBadRequest)
-	//}
-	//usageValueString := ctx.QueryParam("usage_value")
-	//if usageValueString == "" {
-	//	return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
-	//}
-	//usageValueFloat, err := ParseFloat(usageValueString)
-	//if err != nil {
-	//	return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
-	//}
+		// Look up the resource type.
+		resourceType, err := db.GetResourceTypeByName(tx, usage.ResourceName)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		if resourceType == nil {
+			return model.Error(ctx, fmt.Sprintf("resource type '%s' does not exist", usage.ResourceName), http.StatusBadRequest)
+		}
 
-	// Look up the currently active user plan, adding a default plan if one doesn't exist already.
-	userPlan, err := db.GetActiveUserPlan(s.GORMDB, usage.Username)
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-
-	// Look up the resource type.
-	resourceType, err := db.GetResourceTypeByName(s.GORMDB, usage.ResourceName)
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	if resourceType == nil {
-		return model.Error(ctx, fmt.Sprintf("resource type '%s' does not exist", usage.ResourceName), http.StatusBadRequest)
-	}
-
-	// Add the usage record.
-	var req = model.Usage{
-		Usage:          usage.UsageValue,
-		AddedBy:        "Admin",
-		UserPlanID:     userPlan.ID,
-		ResourceTypeID: resourceType.ID,
-	}
-	err = s.GORMDB.Debug().Create(&req).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return ctx.JSON(http.StatusOK,
-		model.SuccessResponse("Successfully updated Usage for the user: "+usage.Username, http.StatusOK))
+		// Add the usage record.
+		var req = model.Usage{
+			Usage:          usage.UsageValue,
+			AddedBy:        "Admin",
+			UserPlanID:     userPlan.ID,
+			ResourceTypeID: resourceType.ID,
+		}
+		err = tx.Debug().Create(&req).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		return ctx.JSON(http.StatusOK,
+			model.SuccessResponse("Successfully updated Usage for the user: "+usage.Username, http.StatusOK))
+	})
+	return err
 }
