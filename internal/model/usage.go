@@ -11,8 +11,8 @@ type Usage struct {
 	Usage          float64      `gorm:"not null" json:"usage"`
 	AddedBy        string       `gorm:"type:text" json:"added_by"`
 	LastModifiedBy string       `gorm:"type:text" json:"last_modified_by"`
-	UserPlanID     *string      `gorm:"type:uuid;not null" json:"-"`
+	UserPlanID     *string      `gorm:"type:uuid;not null;index:usage_userplan_resourcetype,unique" json:"-"`
 	UserPlan       UserPlan     `json:"user_plans"`
-	ResourceTypeID *string      `gorm:"type:uuid;not null" json:"-"`
+	ResourceTypeID *string      `gorm:"type:uuid;not null;index:usage_userplan_resourcetype,unique" json:"-"`
 	ResourceType   ResourceType `json:"resource_types"`
 }

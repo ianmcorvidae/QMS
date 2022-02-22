@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"time"
 
@@ -164,14 +165,14 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	var user = model.
-		User{UserName: username}
+	User{UserName: username}
 	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
 	if err != nil {
 		return model.Error(ctx, "user name not found.", http.StatusInternalServerError)
 	}
 	userID := *user.ID
 	var plan = model.
-		Plan{Name: planName}
+	Plan{Name: planName}
 	err = s.GORMDB.Debug().
 		Find(&plan, "name=?", planName).Error
 	if err != nil {
@@ -208,6 +209,8 @@ type Usage struct {
 	Username     string  `json:"username"`
 	ResourceName string  `json:"resource_name"`
 	UsageValue   float64 `json:"usage_value"`
+	UpdateType   string  `json:"update_type"`
+	Unit         string  `json:"unit"`
 }
 
 func (s Server) AddUsages(ctx echo.Context) error {
@@ -251,7 +254,17 @@ func (s Server) AddUsages(ctx echo.Context) error {
 			UserPlanID:     userPlan.ID,
 			ResourceTypeID: resourceType.ID,
 		}
-		err = tx.Debug().Create(&req).Error
+		err = tx.Debug().Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{
+					Name: "user_plan_id",
+				},
+				{
+					Name: "resource_type_id",
+				},
+			},
+			UpdateAll: true,
+		}).Create(&req).Error
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
