@@ -165,14 +165,14 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	var user = model.
-	User{UserName: username}
+		User{UserName: username}
 	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
 	if err != nil {
 		return model.Error(ctx, "user name not found.", http.StatusInternalServerError)
 	}
 	userID := *user.ID
 	var plan = model.
-	Plan{Name: planName}
+		Plan{Name: planName}
 	err = s.GORMDB.Debug().
 		Find(&plan, "name=?", planName).Error
 	if err != nil {
@@ -210,7 +210,6 @@ type Usage struct {
 	ResourceName string  `json:"resource_name"`
 	UsageValue   float64 `json:"usage_value"`
 	UpdateType   string  `json:"update_type"`
-	Unit         string  `json:"unit"`
 }
 
 func (s Server) AddUsages(ctx echo.Context) error {
@@ -230,6 +229,9 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	}
 	if usage.UsageValue < 0 {
 		return model.Error(ctx, "invalid usage value", http.StatusBadRequest)
+	}
+	if usage.UpdateType == "" {
+		return model.Error(ctx, "missing usage update type value", http.StatusBadRequest)
 	}
 	err = s.GORMDB.Transaction(func(tx *gorm.DB) error {
 		// Look up the currently active user plan, adding a default plan if one doesn't exist already.
@@ -254,6 +256,32 @@ func (s Server) AddUsages(ctx echo.Context) error {
 			UserPlanID:     userPlan.ID,
 			ResourceTypeID: resourceType.ID,
 		}
+		updateOperation := model.UpdateOperation{Name: usage.UpdateType}
+		err = tx.Debug().First(&updateOperation).Error
+		if err == gorm.ErrRecordNotFound {
+			return model.Error(ctx, "invalid update type", http.StatusBadRequest)
+		}
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		currentUsage := model.Usage{
+			UserPlanID:     userPlan.ID,
+			ResourceTypeID: resourceType.ID,
+		}
+		err = tx.Debug().First(&currentUsage).Error
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		switch usage.UpdateType {
+		case UpdateTypeSet:
+			req.Usage = usage.UsageValue
+		case UpdateTypeAdd:
+			req.Usage = currentUsage.Usage + usage.UsageValue
+		default:
+			msg := fmt.Sprintf("invalid update type: %s", usage.UpdateType)
+			return model.Error(ctx, msg, http.StatusBadRequest)
+		}
+
 		err = tx.Debug().Clauses(clause.OnConflict{
 			Columns: []clause.Column{
 				{
@@ -265,6 +293,17 @@ func (s Server) AddUsages(ctx echo.Context) error {
 			},
 			UpdateAll: true,
 		}).Create(&req).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		update := model.Update{
+			Value:             req.Usage,
+			ResourceTypeID:    resourceType.ID,
+			UpdatedBy:         "Admin",
+			EffectiveDate:     time.Now(),
+			UpdateOperationID: updateOperation.ID,
+		}
+		err = tx.Debug().Create(&update).Error
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}

@@ -1,12 +1,9 @@
 package controllers
 
 import (
-	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 const (
@@ -14,91 +11,9 @@ const (
 	UpdateTypeAdd = "ADD"
 )
 
-type UpdateUsagesReq struct {
-	UserName             string  `json:"username"`
-	ResourceType         string  `json:"resource_type"`
-	UpdateType           string  `json:"update_type"`
-	UsageAdjustmentValue float64 `json:"usage_adjustment_value"`
-	EffectiveDate        string  `json:"effective_date"`
-	Unit                 string  `json:"unit"`
-}
-
 type UpdateQuotaReq struct {
 	Type  string  `json:"type"`
 	Value float64 `json:"value"`
-}
-
-func (s Server) UpdateUsages(ctx echo.Context) error {
-	var (
-		err error
-		req UpdateUsagesReq
-	)
-	if err = ctx.Bind(&req); err != nil {
-		return model.Error(ctx, err.Error(), http.StatusBadRequest)
-	}
-	effectiveDate, err := time.Parse("2006-01-02", req.EffectiveDate)
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusBadRequest)
-	}
-	var resourceType = model.ResourceType{Name: req.ResourceType}
-	err = s.GORMDB.Debug().Find(&resourceType).Error
-	if err != nil {
-		return model.Error(ctx, "resource type not found.", http.StatusInternalServerError)
-	}
-	resourceTypeID := *resourceType.ID
-	var usageDetails []model.Usage
-	err = s.GORMDB.Debug().
-		Table("user_plans").
-		Select("usages.*").
-		Joins("JOIN usages ON user_plans.id=usages.user_plan_id").
-		Joins("JOIN resource_types ON resource_types.id=usages.resource_type_id").
-		Joins("JOIN quota ON user_plans.id=quota.user_plan_id").
-		Joins("JOIN users ON users.id = user_plans.user_id").
-		Where("resource_types.name=? AND users.user_name=?", req.ResourceType, req.UserName).
-		Scan(&usageDetails).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	for _, usageRec := range usageDetails {
-		usageRec.UpdatedAt = effectiveDate
-		value := req.UsageAdjustmentValue
-		switch req.UpdateType {
-		case UpdateTypeSet:
-			usageRec.Usage = value
-		case UpdateTypeAdd:
-			usageRec.Usage += value
-		default:
-			msg := fmt.Sprintf("invalid update type: %s", req.UpdateType)
-			return model.Error(ctx, msg, http.StatusBadRequest)
-		}
-		err := s.GORMDB.Debug().
-			Updates(&usageRec).
-			Where("resource_type_id=?", resourceTypeID).Error
-		if err != nil {
-			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-		}
-	}
-	var updateOperation = model.UpdateOperation{}
-	err = s.GORMDB.Debug().
-		Where("name=?", req.UpdateType).
-		Find(&updateOperation).
-		Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	updateOperationID := *updateOperation.ID
-	var update = model.Update{
-		ValueType:         req.Unit,
-		UpdatedBy:         "Admin",
-		Value:             req.UsageAdjustmentValue,
-		ResourceTypeID:    &resourceTypeID,
-		UpdateOperationID: &updateOperationID,
-	}
-	err = s.GORMDB.Debug().Create(&update).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return model.Success(ctx, "Success", http.StatusOK)
 }
 
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
