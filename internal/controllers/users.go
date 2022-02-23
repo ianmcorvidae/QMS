@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"net/http"
 	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/cyverse/QMS/internal/db"
 	"github.com/cyverse/QMS/internal/model"
@@ -212,12 +213,14 @@ type Usage struct {
 	UpdateType   string  `json:"update_type"`
 }
 
+// AddUsages adds or updates the usage record for a user, plan, and resource type.
 func (s Server) AddUsages(ctx echo.Context) error {
 	var (
 		err   error
 		usage Usage
 	)
 
+	// Extract and validate the request body.
 	if err = ctx.Bind(&usage); err != nil {
 		return model.Error(ctx, "invalid request body", http.StatusBadRequest)
 	}
@@ -233,6 +236,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if usage.UpdateType == "" {
 		return model.Error(ctx, "missing usage update type value", http.StatusBadRequest)
 	}
+
 	err = s.GORMDB.Transaction(func(tx *gorm.DB) error {
 		// Look up the currently active user plan, adding a default plan if one doesn't exist already.
 		userPlan, err := db.GetActiveUserPlan(tx, usage.Username)
@@ -249,13 +253,15 @@ func (s Server) AddUsages(ctx echo.Context) error {
 			return model.Error(ctx, fmt.Sprintf("resource type '%s' does not exist", usage.ResourceName), http.StatusBadRequest)
 		}
 
-		// Add the usage record.
-		var req = model.Usage{
+		// Initialize the new usage record.
+		var newUsage = model.Usage{
 			Usage:          usage.UsageValue,
 			AddedBy:        "Admin",
 			UserPlanID:     userPlan.ID,
 			ResourceTypeID: resourceType.ID,
 		}
+
+		// Verify that the update operation for the given update type exists.
 		updateOperation := model.UpdateOperation{Name: usage.UpdateType}
 		err = tx.Debug().First(&updateOperation).Error
 		if err == gorm.ErrRecordNotFound {
@@ -264,6 +270,8 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
+
+		// Determine the current usage, which should be zero if the usage record doesn't exist.
 		currentUsage := model.Usage{
 			UserPlanID:     userPlan.ID,
 			ResourceTypeID: resourceType.ID,
@@ -272,16 +280,19 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
+
+		// Update the new usage based on the values in the request body.
 		switch usage.UpdateType {
 		case UpdateTypeSet:
-			req.Usage = usage.UsageValue
+			newUsage.Usage = usage.UsageValue
 		case UpdateTypeAdd:
-			req.Usage = currentUsage.Usage + usage.UsageValue
+			newUsage.Usage = currentUsage.Usage + usage.UsageValue
 		default:
 			msg := fmt.Sprintf("invalid update type: %s", usage.UpdateType)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
 
+		// Either add the new usage record or update the existing one.
 		err = tx.Debug().Clauses(clause.OnConflict{
 			Columns: []clause.Column{
 				{
@@ -292,12 +303,14 @@ func (s Server) AddUsages(ctx echo.Context) error {
 				},
 			},
 			UpdateAll: true,
-		}).Create(&req).Error
+		}).Create(&newUsage).Error
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
+
+		// Store an update record in the database.
 		update := model.Update{
-			Value:             req.Usage,
+			Value:             newUsage.Usage,
 			ResourceTypeID:    resourceType.ID,
 			UpdatedBy:         "Admin",
 			EffectiveDate:     time.Now(),
@@ -307,8 +320,10 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
-		return ctx.JSON(http.StatusOK,
-			model.SuccessResponse("Successfully updated Usage for the user: "+usage.Username, http.StatusOK))
+
+		// Return a response to the caller.
+		msg := fmt.Sprintf("successfully updated the usage for: %s", usage.Username)
+		return model.SuccessMessage(ctx, msg, http.StatusOK)
 	})
 	return err
 }

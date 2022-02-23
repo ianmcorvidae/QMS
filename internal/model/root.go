@@ -40,6 +40,11 @@ func SuccessResponse(data interface{}, status int) Response {
 	}
 }
 
+// SuccessMessage sends a basic success response containing a textual message to the caller.
+func SuccessMessage(ctx echo.Context, msg string, status int) error {
+	return ctx.JSON(status, SuccessResponse(msg, status))
+}
+
 // Success sends a basic success response to the caller.
 func Success(ctx echo.Context, data interface{}, status int) error {
 	return ctx.JSON(status, SuccessResponse(data, status))
