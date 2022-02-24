@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS quotas (
     resource_type_id uuid NOT NULL,
     user_plan_id uuid NOT NULL,
     created_by text NOT NULL,
-    created_at timestamp with timezone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
     last_modified_by text NOT NULL,
     last_modified_at timestamp with time zone NOT NULL,
     FOREIGN KEY (resource_type_id) REFERENCES resource_types(id) ON DELETE CASCADE,
@@ -84,11 +84,11 @@ CREATE TRIGGER quotas_last_modified_at_trigger
 --
 CREATE TABLE IF NOT EXISTS usages (
     id uuid NOT NULL DEFAULT uuid_generate_v1(),
-    "usage" numeric NOT NULL
+    "usage" numeric NOT NULL,
     resource_type_id uuid NOT NULL,
     user_plan_id uuid NOT NULL,
     created_by text NOT NULL,
-    created_at timestamp with timezone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
     last_modified_by text NOT NULL,
     last_modified_at timestamp with time zone NOT NULL,
     FOREIGN KEY (resource_type_id) REFERENCES resource_types(id) ON DELETE CASCADE,
@@ -168,3 +168,75 @@ CREATE TABLE IF NOT EXISTS update_operations (
 --
 -- Tracked metrics is an enumeration indicating the types of values for which updates are tracked in the updates table.
 --
+CREATE TYPE tracked_metrics AS ENUM ('quotas', 'usages');
+
+--
+-- A table tracking updates to both quotas and usages.
+--
+CREATE TABLE IF NOT EXISTS updates (
+    id uuid NOT NULL default uuid_generate_v1(),
+    op_id uuid NOT NULL,
+    value_type tracked_metrics NOT NULL,
+    "value" numeric NOT NULL,
+    created_by text NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    last_modified_by text NOT NULL,
+    last_modified_at timestamp with time zone NOT NULL
+);
+
+--
+--
+-- A trigger to set the created_by field when a new row is added to the updates table.
+--
+DROP TRIGGER IF EXISTS updates_created_by_trigger ON updates CASCADE;
+CREATE TRIGGER updates_created_by_trigger
+    BEFORE INSERT ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE insert_username(created_by);
+
+--
+-- A trigger to set the created_at field when a new row is added to the updates table.
+--
+DROP TRIGGER IF EXISTS updates_created_at_trigger ON updates CASCADE;
+CREATE TRIGGER updates_created_at_trigger
+    BEFORE INSERT ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE moddatetime(created_at);
+
+--
+-- A trigger to set the last_modified_by field when a row is added to the updates table.
+--
+DROP TRIGGER IF EXISTS updates_last_modified_by_insert_trigger ON updates CASCADE;
+CREATE TRIGGER updates_last_modified_by_insert_trigger
+    BEFORE INSERT ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE insert_username(last_modified_by);
+
+--
+-- A trigger to set the last_modified_at field when a row is added to the updates table.
+--
+DROP TRIGGER IF EXISTS updates_last_modified_at_insert_trigger ON updates CASCADE;
+CREATE TRIGGER updates_last_modified_at_insert_trigger
+    BEFORE UPDATE ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE moddatetime(last_modified_at);
+
+--
+-- A trigger to set the last_modified_by field when a row is modified in the updates table.
+--
+DROP TRIGGER IF EXISTS updates_last_modified_by_trigger ON updates CASCADE;
+CREATE TRIGGER updates_last_modified_by_trigger
+    BEFORE UPDATE ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE insert_username(last_modified_by);
+
+--
+-- A trigger to set the last_modified_at field when a row is modified in the updates table.
+--
+DROP TRIGGER IF EXISTS updates_last_modified_at_trigger ON updates CASCADE;
+CREATE TRIGGER updates_last_modified_at_trigger
+    BEFORE UPDATE ON updates
+    FOR EACH ROW
+    EXECUTE PROCEDURE moddatetime(last_modified_at);
+
+COMMIT;
