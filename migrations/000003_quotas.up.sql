@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS quotas (
     resource_type_id uuid NOT NULL,
     user_plan_id uuid NOT NULL,
     created_by text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_by text NOT NULL,
-    last_modified_at timestamp with time zone NOT NULL,
+    last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (resource_type_id) REFERENCES resource_types(id) ON DELETE CASCADE,
     FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
@@ -35,15 +35,6 @@ CREATE TRIGGER quotas_created_by_trigger
     EXECUTE PROCEDURE insert_username(created_by);
 
 --
--- A trigger to set the created_at field when a new row is added to the quotas table.
---
-DROP TRIGGER IF EXISTS quotas_created_at_trigger ON quotas CASCADE;
-CREATE TRIGGER quotas_created_at_trigger
-    BEFORE INSERT ON quotas
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(created_at);
-
---
 -- A trigger to set the last_modified_by field when a row is added to the quotas table.
 --
 DROP TRIGGER IF EXISTS quotas_last_modified_by_insert_trigger ON quotas CASCADE;
@@ -51,15 +42,6 @@ CREATE TRIGGER quotas_last_modified_by_insert_trigger
     BEFORE INSERT ON quotas
     FOR EACH ROW
     EXECUTE PROCEDURE insert_username(last_modified_by);
-
---
--- A trigger to set the last_modified_at field when a row is added to the quotas table.
---
-DROP TRIGGER IF EXISTS quotas_last_modified_at_insert_trigger ON quotas CASCADE;
-CREATE TRIGGER quotas_last_modified_at_insert_trigger
-    BEFORE UPDATE ON quotas
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(last_modified_at);
 
 --
 -- A trigger to set the last_modified_by field when a row is modified in the quotas table.
@@ -88,9 +70,9 @@ CREATE TABLE IF NOT EXISTS usages (
     resource_type_id uuid NOT NULL,
     user_plan_id uuid NOT NULL,
     created_by text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_by text NOT NULL,
-    last_modified_at timestamp with time zone NOT NULL,
+    last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (resource_type_id) REFERENCES resource_types(id) ON DELETE CASCADE,
     FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
@@ -112,15 +94,6 @@ CREATE TRIGGER usages_created_by_trigger
     EXECUTE PROCEDURE insert_username(created_by);
 
 --
--- A trigger to set the created_at field when a new row is added to the usages table.
---
-DROP TRIGGER IF EXISTS usages_created_at_trigger ON usages CASCADE;
-CREATE TRIGGER usages_created_at_trigger
-    BEFORE INSERT ON usages
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(created_at);
-
---
 -- A trigger to set the last_modified_by field when a row is added to the usages table.
 --
 DROP TRIGGER IF EXISTS usages_last_modified_by_insert_trigger ON usages CASCADE;
@@ -128,15 +101,6 @@ CREATE TRIGGER usages_last_modified_by_insert_trigger
     BEFORE INSERT ON usages
     FOR EACH ROW
     EXECUTE PROCEDURE insert_username(last_modified_by);
-
---
--- A trigger to set the last_modified_at field when a row is added to the usages table.
---
-DROP TRIGGER IF EXISTS usages_last_modified_at_insert_trigger ON usages CASCADE;
-CREATE TRIGGER usages_last_modified_at_insert_trigger
-    BEFORE UPDATE ON usages
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(last_modified_at);
 
 --
 -- A trigger to set the last_modified_by field when a row is modified in the usages table.
@@ -179,9 +143,11 @@ CREATE TABLE IF NOT EXISTS updates (
     value_type tracked_metrics NOT NULL,
     "value" numeric NOT NULL,
     created_by text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_by text NOT NULL,
-    last_modified_at timestamp with time zone NOT NULL
+    last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (op_id) REFERENCES update_operations(id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
 );
 
 --
@@ -195,15 +161,6 @@ CREATE TRIGGER updates_created_by_trigger
     EXECUTE PROCEDURE insert_username(created_by);
 
 --
--- A trigger to set the created_at field when a new row is added to the updates table.
---
-DROP TRIGGER IF EXISTS updates_created_at_trigger ON updates CASCADE;
-CREATE TRIGGER updates_created_at_trigger
-    BEFORE INSERT ON updates
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(created_at);
-
---
 -- A trigger to set the last_modified_by field when a row is added to the updates table.
 --
 DROP TRIGGER IF EXISTS updates_last_modified_by_insert_trigger ON updates CASCADE;
@@ -211,15 +168,6 @@ CREATE TRIGGER updates_last_modified_by_insert_trigger
     BEFORE INSERT ON updates
     FOR EACH ROW
     EXECUTE PROCEDURE insert_username(last_modified_by);
-
---
--- A trigger to set the last_modified_at field when a row is added to the updates table.
---
-DROP TRIGGER IF EXISTS updates_last_modified_at_insert_trigger ON updates CASCADE;
-CREATE TRIGGER updates_last_modified_at_insert_trigger
-    BEFORE UPDATE ON updates
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(last_modified_at);
 
 --
 -- A trigger to set the last_modified_by field when a row is modified in the updates table.
