@@ -39,7 +39,7 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 		Joins("JOIN users ON users.id = user_plans.user_id").
 		Where("cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date")
 	if username != "" {
-		usage.Where("users.user_name = ?", username)
+		usage.Where("users.username = ?", username)
 	}
 	if err = usage.Find(&usageData).Error; err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)

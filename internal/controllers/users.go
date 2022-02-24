@@ -54,7 +54,7 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 		}
 
 		// Look up or create the user plan.
-		userPlan, err := db.GetActiveUserPlan(tx, user.UserName)
+		userPlan, err := db.GetActiveUserPlan(tx, user.Username)
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
@@ -100,7 +100,6 @@ func (s Server) AddUser(ctx echo.Context) error {
 	startDate := time.Now()
 	endDate := startDate.AddDate(1, 0, 0)
 	var userPlan = model.UserPlan{
-		AddedBy:            "Admin",
 		UserID:             userID,
 		PlanID:             planId,
 		EffectiveStartDate: &startDate,
@@ -145,13 +144,11 @@ func (s Server) AddUser(ctx echo.Context) error {
 	defaultCPUQuotaValue := defaultCpuQuota.QuotaValue
 	var userQuota = []model.Quota{
 		{
-			AddedBy:        "Admin",
 			UserPlanID:     userPlanId,
 			ResourceTypeID: storageId,
 			Quota:          defaultStorageQuotaValue,
 		},
 		{
-			AddedBy:        "Admin",
 			UserPlanID:     userPlanId,
 			ResourceTypeID: cpuId,
 			Quota:          defaultCPUQuotaValue,
@@ -174,8 +171,8 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 	var user = model.
-		User{UserName: username}
-	err := s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
+		User{Username: username}
+	err := s.GORMDB.Debug().Find(&user, "username=?", username).Error
 	if err != nil {
 		return model.Error(ctx, "user name not found.", http.StatusInternalServerError)
 	}
@@ -264,7 +261,6 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		// Initialize the new usage record.
 		var newUsage = model.Usage{
 			Usage:          usage.UsageValue,
-			AddedBy:        "Admin",
 			UserPlanID:     userPlan.ID,
 			ResourceTypeID: resourceType.ID,
 		}
@@ -320,7 +316,6 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		update := model.Update{
 			Value:             newUsage.Usage,
 			ResourceTypeID:    resourceType.ID,
-			UpdatedBy:         "Admin",
 			EffectiveDate:     time.Now(),
 			UpdateOperationID: updateOperation.ID,
 		}

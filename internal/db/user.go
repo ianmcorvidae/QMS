@@ -12,10 +12,10 @@ func GetUser(db *gorm.DB, username string) (*model.User, error) {
 	wrapMsg := "unable to look up or add the user"
 	var err error
 
-	user := model.User{UserName: username}
-	err = db.Select("ID", "UserName").
+	user := model.User{Username: username}
+	err = db.Select("ID", "Username").
 		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "user_name"}},
+			Columns:   []clause.Column{{Name: "username"}},
 			UpdateAll: true,
 		}).
 		Create(&user).Error
