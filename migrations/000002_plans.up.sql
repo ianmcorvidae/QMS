@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS user_plans (
     effective_end_date timestamp with time zone,
     created_by text NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    last_modified_by text NOT NULL DEFAULT CURRENT_USER,
-    last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by text NOT NULL,
+    last_modified_at timestamp with time zone NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
