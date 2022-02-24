@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Plan
@@ -26,7 +24,6 @@ type Plan struct {
 
 // PlanQuotaDefault define the structure for an Api Plan and Quota.
 type PlanQuotaDefault struct {
-	gorm.Model
 	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	PlanID         *string      `gorm:"type:uuid;not null" json:"-"`
 	ResourceTypeID *string      `gorm:"type:uuid;not null" json:"-"`
@@ -37,7 +34,6 @@ type PlanQuotaDefault struct {
 
 // UserPlan define the structure for the API User plans.
 type UserPlan struct {
-	gorm.Model
 	ID                 *string    `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	EffectiveStartDate *time.Time `gorm:"" json:"effective_start_date"`
 	EffectiveEndDate   *time.Time `gorm:"" json:"effective_end_date"`
@@ -46,4 +42,7 @@ type UserPlan struct {
 	UserID             *string    `gorm:"type:uuid;not null" json:"-"`
 	User               User       `json:"users"`
 	PlanID             *string    `gorm:"type:uuid;not null" json:"-"`
+	Plan               Plan       `json:"plan"`
+	Quotas             []Quota    `json:"quotas"`
+	Usages             []Usage    `json:"usages"`
 }
