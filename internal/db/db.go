@@ -58,6 +58,26 @@ func addInitialUpdateOperations(gormdb *gorm.DB) error {
 	return nil
 }
 
+// addInitialPlans inserts the default plans in the QMS database if they don't exist already.
+func addInitialPlans(gormdb *gorm.DB) error {
+	initialPlans := []model.Plan{
+		{
+			Name:        "Basic",
+			Description: "Basic plan",
+		},
+	}
+
+	// Add the plans.
+	for _, plan := range initialPlans {
+		err := gormdb.Clauses(clause.OnConflict{DoNothing: true}).Create(&plan).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // InitDatabase establishes a database connection and verifies that the database can be reached.
 func Init(driverName, databaseURI string) (*sql.DB, *gorm.DB, error) {
 
@@ -76,15 +96,23 @@ func Init(driverName, databaseURI string) (*sql.DB, *gorm.DB, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, wrapMsg)
 	}
+
+	// Do any required schema migrations.
 	err = MigrateTables(gormdb)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, wrapMsg)
 	}
+
+	// Insert the default initial entities if they're not already defined.
 	err = addInitialResourceTypes(gormdb)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, wrapMsg)
 	}
 	err = addInitialUpdateOperations(gormdb)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, wrapMsg)
+	}
+	err = addInitialPlans(gormdb)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, wrapMsg)
 	}
