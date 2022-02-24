@@ -33,8 +33,7 @@ func AddDefaultUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 		UserID:             user.ID,
 		PlanID:             plan.ID,
 	}
-	err = db.Select("EffectiveStartDate", "EffectiveEndDate", "UserID", "PlanID").
-		Create(&userPlan).Error
+	err = db.Debug().Create(&userPlan).Error
 	if err != nil {
 		return nil, errors.Wrap(err, wrapMsg)
 	}

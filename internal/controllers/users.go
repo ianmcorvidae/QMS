@@ -31,15 +31,6 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }
 
-type PlanDetails struct {
-	UserName string
-	UserId   *string
-	Name     string
-	Usage    string
-	Quota    float64
-	Unit     string
-}
-
 type Result struct {
 	ID             *string
 	UserName       string
@@ -51,23 +42,40 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	var planData []PlanDetails
-	err := s.GORMDB.Debug().Raw(`select plans.name,
-	usages.usage,
-	quotas.quota,
-	resource_types.unit 
-	from user_plans 
-	join plans on plans.id = user_plans.plan_id 
-	join usages on user_plans.id=usages.user_plan_id 
-	join quotas on user_plans.id=quotas.user_plan_id 
-	join resource_types on resource_types.id=quotas.resource_type_id
-	join users on users.id = user_plans.user_id
-	where 
-	users.username=?`, username).Scan(&planData).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return ctx.JSON(http.StatusOK, model.SuccessResponse(&planData, http.StatusOK))
+
+	// Start a transaction.
+	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		var err error
+
+		// Look up or insert the user.
+		user, err := db.GetUser(tx, username)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Look up or create the user plan.
+		userPlan, err := db.GetActiveUserPlan(tx, user.UserName)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Retrieve the user plan so that the associations will be loaded.
+		result := model.UserPlan{ID: userPlan.ID}
+		err = tx.
+			Preload("User").
+			Preload("Plan").
+			Preload("Quotas").
+			Preload("Quotas.ResourceType").
+			Preload("Usages").
+			Preload("Usages.ResourceType").
+			First(&result).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Return the user plan.
+		return model.Success(ctx, result, http.StatusOK)
+	})
 }
 
 func (s Server) AddUser(ctx echo.Context) error {

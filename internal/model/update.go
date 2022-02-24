@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // UpdateOperation defines the structure of an available update operation in the QMS database.
@@ -27,7 +25,6 @@ type TrackedMetric struct {
 }
 
 type Update struct {
-	gorm.Model
 	ID                *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	ValueType         string       `json:"value_type"`
 	Value             float64      `gorm:"not null" json:"value"`

@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 const (
@@ -14,6 +15,15 @@ const (
 type UpdateQuotaReq struct {
 	Type  string  `json:"type"`
 	Value float64 `json:"value"`
+}
+
+type PlanDetails struct {
+	UserName string
+	UserId   *string
+	Name     string
+	Usage    string
+	Quota    float64
+	Unit     string
 }
 
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
