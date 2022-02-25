@@ -130,6 +130,13 @@ CREATE TABLE IF NOT EXISTS update_operations (
 );
 
 --
+-- The initial set of update operations.
+--
+INSERT INTO update_operations (id, name) values
+    ('f1f9df66-9676-11ec-aa73-406c8f3e9cbb', 'ADD'),
+    ('f1fa4a1e-9676-11ec-aa73-406c8f3e9cbb', 'SET');
+
+--
 -- Tracked metrics is an enumeration indicating the types of values for which updates are tracked in the updates table.
 --
 CREATE TYPE tracked_metrics AS ENUM ('quotas', 'usages');
@@ -139,14 +146,17 @@ CREATE TYPE tracked_metrics AS ENUM ('quotas', 'usages');
 --
 CREATE TABLE IF NOT EXISTS updates (
     id uuid NOT NULL default uuid_generate_v1(),
-    op_id uuid NOT NULL,
+    update_operation_id uuid NOT NULL,
     value_type tracked_metrics NOT NULL,
     "value" numeric NOT NULL,
+    resource_type_id uuid NOT NULL,
+    effective_date timestamp with time zone NOT NULL,
     created_by text NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_by text NOT NULL,
     last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (op_id) REFERENCES update_operations(id) ON DELETE CASCADE,
+    FOREIGN KEY (update_operation_id) REFERENCES update_operations(id) ON DELETE CASCADE,
+    FOREIGN KEY (resource_type_id) REFERENCES resource_types(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 );
 
