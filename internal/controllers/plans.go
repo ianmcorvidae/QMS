@@ -153,8 +153,8 @@ func (s Server) AddQuota(ctx echo.Context) error {
 		return model.Error(ctx, "resource Type not found: "+resourceName, http.StatusInternalServerError)
 	}
 	resourceID := *resource.ID
-	var user = model.User{UserName: username}
-	err = s.GORMDB.Debug().Find(&user, "user_name=?", username).Error
+	var user = model.User{Username: username}
+	err = s.GORMDB.Debug().Find(&user, "username=?", username).Error
 	if err != nil {
 		return model.Error(ctx, "user name Not Found", http.StatusInternalServerError)
 	}

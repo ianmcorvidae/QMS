@@ -54,7 +54,7 @@ func GetActiveUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 	err = db.
 		Table("user_plans").
 		Joins("JOIN users ON user_plans.user_id=users.id").
-		Where("users.user_name=?", username).
+		Where("users.username=?", username).
 		Where(
 			db.Where("CURRENT_TIMESTAMP BETWEEN user_plans.effective_start_date AND user_plans.effective_end_date").
 				Or("CURRENT_TIMESTAMP > user_plans.effective_start_date AND user_plans.effective_end_date IS NULL"),

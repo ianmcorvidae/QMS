@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS user_plans (
     effective_start_date timestamp with time zone NOT NULL,
     effective_end_date timestamp with time zone,
     created_by text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    last_modified_by text NOT NULL DEFAULT CURRENT_USER,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by text NOT NULL,
     last_modified_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,
@@ -86,15 +86,6 @@ CREATE TRIGGER user_plans_created_by_trigger
     EXECUTE PROCEDURE insert_username(created_by);
 
 --
--- A trigger to set the created_at field when a new row is added to the user_plans table.
---
-DROP TRIGGER IF EXISTS user_plans_created_at_trigger ON user_plans CASCADE;
-CREATE TRIGGER user_plans_created_at_trigger
-    BEFORE INSERT ON user_plans
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(created_at);
-
---
 -- A trigger to set the last_modified_by field when a row is added to the user_plans table.
 --
 DROP TRIGGER IF EXISTS user_plans_last_modified_by_insert_trigger ON user_plans CASCADE;
@@ -102,15 +93,6 @@ CREATE TRIGGER user_plans_last_modified_by_insert_trigger
     BEFORE INSERT ON user_plans
     FOR EACH ROW
     EXECUTE PROCEDURE insert_username(last_modified_by);
-
---
--- A trigger to set the last_modified_at field when a row is added to the user_plans table.
---
-DROP TRIGGER IF EXISTS user_plans_last_modified_at_insert_trigger ON user_plans CASCADE;
-CREATE TRIGGER user_plans_last_modified_at_insert_trigger
-    BEFORE UPDATE ON user_plans
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(last_modified_at);
 
 --
 -- A trigger to set the last_modified_by field when a row is modified in the user_plans table.

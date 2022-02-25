@@ -15,5 +15,5 @@ type User struct {
 	//
 	// in: path
 	// required: true
-	UserName string `gorm:"not null;unique" json:"username"`
+	Username string `gorm:"not null;unique" json:"username"`
 }

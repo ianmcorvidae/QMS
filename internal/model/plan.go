@@ -37,8 +37,6 @@ type UserPlan struct {
 	ID                 *string    `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 	EffectiveStartDate *time.Time `gorm:"" json:"effective_start_date"`
 	EffectiveEndDate   *time.Time `gorm:"" json:"effective_end_date"`
-	AddedBy            string     `gorm:"" json:"added_by"`
-	LastModifiedBy     string     `gorm:"" json:"last_modified_by"`
 	UserID             *string    `gorm:"type:uuid;not null" json:"-"`
 	User               User       `json:"users"`
 	PlanID             *string    `gorm:"type:uuid;not null" json:"-"`
