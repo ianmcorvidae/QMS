@@ -42,6 +42,11 @@ spec:
                 secretKeyRef:
                   name: configs
                   key: QMS_DATABASE_URI
+            - name: QMS_REINIT_DB
+              valueFrom:
+                secretKeyRef:
+                  name: configs
+                  key: QMS_REINIT_DB
           resources:
             requests:
               cpu: "1m"
