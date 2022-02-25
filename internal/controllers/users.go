@@ -31,6 +31,11 @@ func (s Server) GetAllUsers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.SuccessResponse(data, http.StatusOK))
 }
 
+const (
+	ValueTypeQuotas = "quotas"
+	ValueTypeUsages = "usages"
+)
+
 type Result struct {
 	ID             *string
 	UserName       string
@@ -315,6 +320,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 		// Store an update record in the database.
 		update := model.Update{
 			Value:             newUsage.Usage,
+			ValueType:         ValueTypeUsages,
 			ResourceTypeID:    resourceType.ID,
 			EffectiveDate:     time.Now(),
 			UpdateOperationID: updateOperation.ID,
