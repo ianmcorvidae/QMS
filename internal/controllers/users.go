@@ -175,45 +175,56 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	var user = model.
-		User{Username: username}
-	err := s.GORMDB.Debug().Find(&user, "username=?", username).Error
-	if err != nil {
-		return model.Error(ctx, "user name not found.", http.StatusInternalServerError)
-	}
-	userID := *user.ID
-	var plan = model.
-		Plan{Name: planName}
-	err = s.GORMDB.Debug().
-		Find(&plan, "name=?", planName).Error
-	if err != nil {
-		return model.Error(ctx, "plan name not found.", http.StatusInternalServerError)
-	}
-	planId := *plan.ID
-	var userPlan = model.UserPlan{}
-	err = s.GORMDB.Debug().
-		Find(&userPlan, "user_id=?", userID).Error
-	if err != nil {
-		return model.Error(ctx, "user is not enrolled to a plan", http.StatusInternalServerError)
-	}
-	userPlanId := *userPlan.ID
-	if *userPlan.PlanID == planId {
-		return model.Error(ctx, "user cannot be updated with the existing plan: "+planName,
-			http.StatusInternalServerError)
-	}
-	currentDate := time.Now()
-	endDate := currentDate.
-		AddDate(1, 0, 0)
-	err = s.GORMDB.Debug().
-		Model(&userPlan).Where("id=?", userPlanId).
-		Update("plan_id", planId).
-		Update("effective_start_date", currentDate).
-		Update("effective_end_date", endDate).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
+	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		user, err := db.GetUser(tx, username)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		userID := user.ID
+		plan, err := db.GetPlan(tx, planName)
+		if err == gorm.ErrRecordNotFound {
+			return model.Error(ctx, "plan not found", http.StatusBadRequest)
+		}
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		planId := plan.ID
+		err = db.DeactivateUserPlans(tx, *userID)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		currentDate := time.Now()
+		endDate := currentDate.
+			AddDate(1, 0, 0)
+		userPlan := model.UserPlan{
+			UserID:             userID,
+			PlanID:             planId,
+			EffectiveStartDate: &currentDate,
+			EffectiveEndDate:   &endDate,
+		}
+		err = tx.Create(&userPlan).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		planDefaults, err := db.GetDefaultQuotaForPlan(tx, *planId)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		for _, planDefault := range planDefaults {
+			var quota = model.Quota{
+				Quota:          planDefault.QuotaValue,
+				ResourceTypeID: planDefault.ResourceTypeID,
+				UserPlanID:     userPlan.ID,
+			}
+			err = tx.Debug().Create(&quota).Error
+			if err != nil {
+				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+			}
 
-	return model.Success(ctx, "Success", http.StatusOK)
+		}
+		return model.Success(ctx, "Success", http.StatusOK)
+	})
+
 }
 
 type Usage struct {

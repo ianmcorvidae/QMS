@@ -73,3 +73,21 @@ func GetActiveUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 
 	return &userPlan, nil
 }
+
+// DeactivateUserPlans marks all currently active plans for a user as expired. This operation is used when a user
+// selects a new plan. This function does not support user plans that become active in the future at this time.
+func DeactivateUserPlans(db *gorm.DB, userID string) error {
+	wrapMsg := "unable to deactivate active plans for user"
+	var err error
+	// Mark currently active user plans as expired.
+	err = db.Model(&model.UserPlan{}).
+		Select("EffectiveEndDate").
+		Where("user_id = ?", userID).
+		Where("effective_end_date > CURRENT_TIMESTAMP").
+		UpdateColumn("effective_end_date", gorm.Expr("CURRENT_TIMESTAMP")).
+		Error
+	if err != nil {
+		return errors.Wrap(err, wrapMsg)
+	}
+	return nil
+}

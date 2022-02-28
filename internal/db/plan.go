@@ -25,3 +25,17 @@ func GetPlan(db *gorm.DB, planName string) (*model.Plan, error) {
 
 	return &plan, nil
 }
+
+func GetDefaultQuotaForPlan(db *gorm.DB, planID string) ([]model.PlanQuotaDefault, error) {
+	wrapMsg := fmt.Sprintf("unable to look up plan name ")
+	var err error
+
+	var planQuotaDefaults []model.PlanQuotaDefault
+	err = db.Model(&planQuotaDefaults).Where("plan_id=?", planID).Scan(&planQuotaDefaults).Error
+	//err = db.Find(&planQuotaDefaults).Error
+	if err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+
+	return planQuotaDefaults, nil
+}
