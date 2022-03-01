@@ -53,12 +53,12 @@ func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
 		Table("user_plans").
 		Joins("join plans ON plans.id=user_plans.plan_id").
 		Joins("join usages ON user_plans.id=usages.user_plan_id").
-		Joins("join quota ON user_plans.id=usages.user_plan_id").
+		Joins("join quotas ON user_plans.id=usages.user_plan_id").
 		Joins("join resource_types ON resource_types.id=usages.resource_type_id").
 		Joins("join users ON users.id=user_plans.user_id").
 		Where("user_plans.effective_start_date<=cast(now() as date)").
 		Where("user_plans.effective_end_date>=cast(now() as date)").
-		Where("usages.resource_type_id=quota.resource_type_id").
+		Where("usages.resource_type_id=quotas.resource_type_id").
 		Scan(&planData).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)

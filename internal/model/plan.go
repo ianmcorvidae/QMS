@@ -10,26 +10,49 @@ import (
 type Plan struct {
 
 	// The plan identifier
+	//
 	// required: true
+	// readOnly: true
 	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
 
 	// The plan name
+	//
 	// required: true
 	Name string `gorm:"not null;unique" json:"name"`
 
 	// A brief description of the plan
+	//
 	// required: true
 	Description string `gorm:"not null" json:"description"`
+
+	// The default quota values associated with the plan
+	PlanQuotaDefaults []PlanQuotaDefault `json:"plan_quota_defaults"`
 }
 
 // PlanQuotaDefault define the structure for an Api Plan and Quota.
 type PlanQuotaDefault struct {
-	ID             *string      `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
-	PlanID         *string      `gorm:"type:uuid;not null" json:"-"`
-	ResourceTypeID *string      `gorm:"type:uuid;not null" json:"-"`
-	QuotaValue     float64      `gorm:"not null"`
-	Plan           Plan         `json:"plan"`
-	ResourceType   ResourceType `json:"resource_type"`
+
+	// The plan quota default identifier
+	//
+	// required: true
+	// readOnly: true
+	ID *string `gorm:"type:uuid;default:uuid_generate_v1()" json:"id"`
+
+	// The plan ID
+	PlanID *string `gorm:"type:uuid;not null" json:"-"`
+
+	// The default quota value
+	//
+	// required: true
+	QuotaValue float64 `gorm:"not null"`
+
+	// The resource type ID
+	ResourceTypeID *string `gorm:"type:uuid;not null" json:"-"`
+
+	// The resource type
+	//
+	// required: true
+	ResourceType ResourceType `json:"resource_type"`
 }
 
 // UserPlan define the structure for the API User plans.
