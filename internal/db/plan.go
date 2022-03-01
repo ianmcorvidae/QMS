@@ -71,7 +71,7 @@ func ListPlans(db *gorm.DB) ([]*model.Plan, error) {
 }
 
 func GetDefaultQuotaForPlan(db *gorm.DB, planID string) ([]model.PlanQuotaDefault, error) {
-	wrapMsg := fmt.Sprintf("unable to look up plan name ")
+	wrapMsg := "unable to look up plan name "
 	var err error
 
 	var planQuotaDefaults []model.PlanQuotaDefault
