@@ -182,11 +182,12 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 		}
 		userID := user.ID
 		plan, err := db.GetPlan(tx, planName)
-		if err == gorm.ErrRecordNotFound {
-			return model.Error(ctx, "plan not found", http.StatusBadRequest)
-		}
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		if plan == nil {
+			msg := fmt.Sprintf("plan name `%s` not found", planName)
+			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
 		planId := plan.ID
 		err = db.DeactivateUserPlans(tx, *userID)

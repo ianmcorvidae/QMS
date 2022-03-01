@@ -1,14 +1,24 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/cyverse-de/echo-middleware/v2/params"
+	"github.com/cyverse/QMS/internal/db"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
 )
+
+// extractPlanID extracts and validates the plan ID path parameter.
+func extractPlanID(ctx echo.Context) (string, error) {
+	planID, err := params.ValidatedPathParam(ctx, "plan_id", "uuid_rfc4122")
+	if err != nil {
+		return "", fmt.Errorf("the plan ID must be a valid UUID")
+	}
+	return planID, nil
+}
 
 // GetAllPlans is the handler for the GET /v1/plans endpoint.
 //
@@ -22,12 +32,11 @@ import (
 //   200: plansResponse
 //   500: internalServerErrorResponse
 func (s Server) GetAllPlans(ctx echo.Context) error {
-	var data []model.Plan
-	err := s.GORMDB.Debug().Find(&data).Error
+	plans, err := db.ListPlans(s.GORMDB)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, data, http.StatusOK)
+	return model.Success(ctx, plans, http.StatusOK)
 }
 
 // GetPlanByID returns the plan with the given identifier.
@@ -43,21 +52,25 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 //   400: badRequestResponse
 //   500: internalServerErrorResponse
 func (s Server) GetPlanByID(ctx echo.Context) error {
-	planId := ctx.Param("plan_id")
-	if planId == "" {
-		return model.Error(ctx, "invalid plan id", http.StatusBadRequest)
+	var err error
+
+	// Extract and validate the plan ID.
+	planID, err := extractPlanID(ctx)
+	if err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	data := model.Plan{}
-	err := s.GORMDB.Debug().Where("id=@id", sql.Named("id", planId)).Find(&data).Error
+
+	// Look up the plan.
+	plan, err := db.GetPlanByID(s.GORMDB, planID)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	if data.Name == "" || data.Description == "" {
-		msg := fmt.Sprintf("plan id not found: %s", planId)
-		return model.Error(ctx, msg, http.StatusInternalServerError)
+	if plan == nil {
+		msg := fmt.Sprintf("plan ID %s not found", planID)
+		return model.Error(ctx, msg, http.StatusNotFound)
 	}
 
-	return model.Success(ctx, data, http.StatusOK)
+	return model.Success(ctx, plan, http.StatusOK)
 }
 
 type Plan struct {
