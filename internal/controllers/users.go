@@ -207,11 +207,7 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
-		planDefaults, err := db.GetDefaultQuotaForPlan(tx, *planId)
-		if err != nil {
-			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-		}
-		for _, planDefault := range planDefaults {
+		for _, planDefault := range plan.PlanQuotaDefaults {
 			var quota = model.Quota{
 				Quota:          planDefault.QuotaValue,
 				ResourceTypeID: planDefault.ResourceTypeID,
@@ -221,7 +217,6 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 			if err != nil {
 				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 			}
-
 		}
 		return model.Success(ctx, "Success", http.StatusOK)
 	})
