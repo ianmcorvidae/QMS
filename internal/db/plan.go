@@ -16,19 +16,19 @@ const (
 func GetPlan(db *gorm.DB, planName string) (*model.Plan, error) {
 	wrapMsg := fmt.Sprintf("unable to look up plan name '%s'", planName)
 	var err error
-
-	plan := model.Plan{Name: planName}
+	var plan = model.Plan{}
 	err = db.
+		Where("name=?", planName).
 		Preload("PlanQuotaDefaults").
 		Preload("PlanQuotaDefaults.ResourceType").
-		First(&plan).Error
+		First(&plan).
+		Scan(&plan).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, wrapMsg)
 	}
-
 	return &plan, nil
 }
 
