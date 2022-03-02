@@ -8,6 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// QuotasFromPlan generates a set of quotas from the plan quota defaults in a plan. This function assumes that the
+// given plan already contains the plan quota defaults.
+func QuotasFromPlan(plan *model.Plan) []model.Quota {
+	result := make([]model.Quota, len(plan.PlanQuotaDefaults))
+	for i, quotaDefault := range plan.PlanQuotaDefaults {
+		result[i] = model.Quota{
+			Quota:          quotaDefault.QuotaValue,
+			ResourceTypeID: quotaDefault.ResourceTypeID,
+		}
+	}
+	return result
+}
+
 // AddDefaultUserPlan adds a user plan to the given user. The error plan added to the user is always a basic
 // type plan, which doesn't expire.
 func AddDefaultUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
@@ -28,10 +41,13 @@ func AddDefaultUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 
 	// Define the user plan.
 	effectiveStartDate := time.Now()
+	effectiveEndDate := effectiveStartDate.AddDate(1, 0, 0)
 	userPlan := model.UserPlan{
 		EffectiveStartDate: &effectiveStartDate,
+		EffectiveEndDate:   &effectiveEndDate,
 		UserID:             user.ID,
 		PlanID:             plan.ID,
+		Quotas:             QuotasFromPlan(plan),
 	}
 	err = db.Debug().Create(&userPlan).Error
 	if err != nil {
