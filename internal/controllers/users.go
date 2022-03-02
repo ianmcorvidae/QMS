@@ -83,87 +83,31 @@ func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	})
 }
 
+// AddUser adds a new user to the database. This is a no-op if the user already exists.
 func (s Server) AddUser(ctx echo.Context) error {
 	username := ctx.Param("user_name")
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
 
-	// Either add the user to the database or look up the existing user information.
-	user, err := db.GetUser(s.GORMDB, username)
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
+	// Start a transaction.
+	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		var err error
 
-	userID := user.ID
-	var plan = model.Plan{}
-	err = s.GORMDB.Debug().Find(&plan, "name=?", "Basic").Error
-	if err != nil {
-		return model.Error(ctx, "plan name not found.", http.StatusInternalServerError)
-	}
-	planId := plan.ID
-	startDate := time.Now()
-	endDate := startDate.AddDate(1, 0, 0)
-	var userPlan = model.UserPlan{
-		UserID:             userID,
-		PlanID:             planId,
-		EffectiveStartDate: &startDate,
-		EffectiveEndDate:   &endDate,
-	}
-	err = s.GORMDB.Debug().Create(&userPlan).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	storage := "data.size"
-	cpu := "cpu.hours"
-	var storageResource = model.ResourceType{}
-	var cpuResource = model.ResourceType{}
-	err = s.GORMDB.Debug().
-		Find(&storageResource, "name=?", storage).Error
-	if err != nil {
-		return model.Error(ctx, "resource not Found: "+storage, http.StatusInternalServerError)
-	}
-	storageId := storageResource.ID
-	err = s.GORMDB.Debug().
-		Find(&cpuResource, "name=?", cpu).Error
-	if err != nil {
-		return model.Error(ctx, "resource not found.: "+cpu, http.StatusInternalServerError)
-	}
-	cpuId := cpuResource.ID
-	userPlanId := userPlan.ID
-	var defaultStorageQuota = model.PlanQuotaDefault{}
-	err = s.GORMDB.Debug().
-		Find(&defaultStorageQuota, "resource_type_id=?", storageId).Error
-	if err != nil {
-		return model.Error(ctx, "default quota not found. for resource type: "+storage,
-			http.StatusInternalServerError)
-	}
-	defaultStorageQuotaValue := defaultStorageQuota.QuotaValue
-	var defaultCpuQuota = model.PlanQuotaDefault{}
-	err = s.GORMDB.Debug().
-		Find(&defaultCpuQuota, "resource_type_id=?", cpuId).Error
-	if err != nil {
-		return model.Error(ctx, "default quota not found for resource type: "+cpu,
-			http.StatusInternalServerError)
-	}
-	defaultCPUQuotaValue := defaultCpuQuota.QuotaValue
-	var userQuota = []model.Quota{
-		{
-			UserPlanID:     userPlanId,
-			ResourceTypeID: storageId,
-			Quota:          defaultStorageQuotaValue,
-		},
-		{
-			UserPlanID:     userPlanId,
-			ResourceTypeID: cpuId,
-			Quota:          defaultCPUQuotaValue,
-		},
-	}
-	err = s.GORMDB.Debug().Create(&userQuota).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return model.Success(ctx, "Success", http.StatusOK)
+		// Either add the user to the database or look up the existing user information.
+		user, err := db.GetUser(tx, username)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+
+		// GetActiveUserPlan will automatically subscribed the user to the basic plan if not subscribed already.
+		_, err = db.GetActiveUserPlan(tx, user.Username)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+
+		return model.Success(ctx, "Success", http.StatusOK)
+	})
 }
 
 func (s Server) UpdateUserPlan(ctx echo.Context) error {
