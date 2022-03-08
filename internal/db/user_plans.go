@@ -21,23 +21,10 @@ func QuotasFromPlan(plan *model.Plan) []model.Quota {
 	return result
 }
 
-// AddDefaultUserPlan adds a user plan to the given user. The error plan added to the user is always a basic
-// type plan, which doesn't expire.
-func AddDefaultUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
-	wrapMsg := "unable to add the default user plan"
+// SubscribeUserToPlan subscribes the given user to the given plan.
+func SubscribeUserToPlan(db *gorm.DB, user *model.User, plan *model.Plan) (*model.UserPlan, error) {
+	wrapMsg := "unable to add user plan"
 	var err error
-
-	// Get the user ID.
-	user, err := GetUser(db, username)
-	if err != nil {
-		return nil, errors.Wrap(err, wrapMsg)
-	}
-
-	// Get the basic plan ID.
-	plan, err := GetPlan(db, PlanNameBasic)
-	if err != nil {
-		return nil, errors.Wrap(err, wrapMsg)
-	}
 
 	// Define the user plan.
 	effectiveStartDate := time.Now()
@@ -55,6 +42,27 @@ func AddDefaultUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 	}
 
 	return &userPlan, nil
+}
+
+// SubscribeUserToDefaultPlan adds the default user plan to the given user.
+func SubscribeUserToDefaultPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
+	wrapMsg := "unable to add the default user plan"
+	var err error
+
+	// Get the user ID.
+	user, err := GetUser(db, username)
+	if err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+
+	// Get the basic plan ID.
+	plan, err := GetPlan(db, PlanNameBasic)
+	if err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+
+	// Subscribe the user to the plan.
+	return SubscribeUserToPlan(db, user, plan)
 }
 
 // GetActiveUserPlan retrieves the user plan record that is currently active for the user. The effective start
@@ -80,7 +88,7 @@ func GetActiveUserPlan(db *gorm.DB, username string) (*model.UserPlan, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, errors.Wrap(err, wrapMsg)
 	} else if err == gorm.ErrRecordNotFound {
-		userPlanPtr, err := AddDefaultUserPlan(db, username)
+		userPlanPtr, err := SubscribeUserToDefaultPlan(db, username)
 		if err != nil {
 			return nil, errors.Wrap(err, wrapMsg)
 		}
