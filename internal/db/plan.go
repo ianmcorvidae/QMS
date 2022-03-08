@@ -21,8 +21,7 @@ func GetPlan(db *gorm.DB, planName string) (*model.Plan, error) {
 		Where("name=?", planName).
 		Preload("PlanQuotaDefaults").
 		Preload("PlanQuotaDefaults.ResourceType").
-		First(&plan).
-		Scan(&plan).Error
+		First(&plan).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
