@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cyverse/QMS/internal/model"
@@ -24,7 +23,7 @@ func QuotasFromPlan(plan *model.Plan) []model.Quota {
 
 // SubscribeUserToPlan subscribes the given user to the given plan.
 func SubscribeUserToPlan(db *gorm.DB, user *model.User, plan *model.Plan) (*model.UserPlan, error) {
-	wrapMsg := fmt.Sprintf("unable to add user plan")
+	wrapMsg := "unable to add user plan"
 	var err error
 
 	// Define the user plan.
