@@ -22,6 +22,8 @@ import (
 // responses:
 //   200: userListing
 //   500: internalServerErrorResponse
+
+// GetAllUsers lists the users that are currently defined in the database.
 func (s Server) GetAllUsers(ctx echo.Context) error {
 	var data []model.User
 	err := s.GORMDB.Debug().Find(&data).Error
@@ -42,6 +44,7 @@ type Result struct {
 	ResourceTypeId *string
 }
 
+// GetUserPlanDetails returns information about the currently active plan for the user.
 func (s Server) GetUserPlanDetails(ctx echo.Context) error {
 	username := ctx.Param("username")
 	if username == "" {
@@ -110,21 +113,28 @@ func (s Server) AddUser(ctx echo.Context) error {
 	})
 }
 
+// UpdateUserPlan subscribes the user to a new plan.
 func (s Server) UpdateUserPlan(ctx echo.Context) error {
 	planName := ctx.Param("plan_name")
 	if planName == "" {
-		return model.Error(ctx, "invalid Plan name", http.StatusBadRequest)
+		return model.Error(ctx, "invalid plan name", http.StatusBadRequest)
 	}
 	username := ctx.Param("user_name")
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
+
+	// Start a transaction.
 	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		var err error
+
+		// Either add the user to the database or look up the existing user information.
 		user, err := db.GetUser(tx, username)
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
-		userID := user.ID
+
+		// Verify that a plan with the given name exists.
 		plan, err := db.GetPlan(tx, planName)
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
@@ -133,38 +143,21 @@ func (s Server) UpdateUserPlan(ctx echo.Context) error {
 			msg := fmt.Sprintf("plan name `%s` not found", planName)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
-		planId := plan.ID
-		err = db.DeactivateUserPlans(tx, *userID)
+
+		// Deactivate all active plans for the user.
+		err = db.DeactivateUserPlans(tx, *user.ID)
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
-		currentDate := time.Now()
-		endDate := currentDate.
-			AddDate(1, 0, 0)
-		userPlan := model.UserPlan{
-			UserID:             userID,
-			PlanID:             planId,
-			EffectiveStartDate: &currentDate,
-			EffectiveEndDate:   &endDate,
-		}
-		err = tx.Create(&userPlan).Error
+
+		// Subscribe the user to the plan.
+		_, err = db.SubscribeUserToPlan(tx, user, plan)
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
-		for _, planDefault := range plan.PlanQuotaDefaults {
-			var quota = model.Quota{
-				Quota:          planDefault.QuotaValue,
-				ResourceTypeID: planDefault.ResourceTypeID,
-				UserPlanID:     userPlan.ID,
-			}
-			err = tx.Debug().Create(&quota).Error
-			if err != nil {
-				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-			}
-		}
+
 		return model.Success(ctx, "Success", http.StatusOK)
 	})
-
 }
 
 type Usage struct {
@@ -268,7 +261,7 @@ func (s Server) AddUsages(ctx echo.Context) error {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
 
-		// Store an update record in the database.
+		// Record the update in the database.
 		update := model.Update{
 			Value:             newUsage.Usage,
 			ValueType:         ValueTypeUsages,
