@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"net/http"
-
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 const (
@@ -48,22 +47,24 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 }
 
 func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
-	var planData []PlanDetails
+	var userPlan []model.UserPlan
 	err := s.GORMDB.
-		Table("user_plans").
-		Joins("join plans ON plans.id=user_plans.plan_id").
-		Joins("join usages ON user_plans.id=usages.user_plan_id").
-		Joins("join quotas ON user_plans.id=usages.user_plan_id").
-		Joins("join resource_types ON resource_types.id=usages.resource_type_id").
-		Joins("join users ON users.id=user_plans.user_id").
-		Where("user_plans.effective_start_date<=cast(now() as date)").
-		Where("user_plans.effective_end_date>=cast(now() as date)").
-		Where("usages.resource_type_id=quotas.resource_type_id").
-		Scan(&planData).Error
+		Preload("User").
+		Preload("Plan").
+		Preload("Plan.PlanQuotaDefaults").
+		Preload("Plan.PlanQuotaDefaults.ResourceType").
+		Preload("Quotas").
+		Preload("Quotas.ResourceType").
+		Preload("Usages").
+		Preload("Usages.ResourceType").
+		Where(
+			s.GORMDB.Where("CURRENT_TIMESTAMP BETWEEN user_plans.effective_start_date AND user_plans.effective_end_date").
+				Or("CURRENT_TIMESTAMP > user_plans.effective_start_date AND user_plans.effective_end_date IS NULL")).
+		Find(&userPlan).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, planData, http.StatusOK)
+	return model.Success(ctx, userPlan, http.StatusOK)
 }
 
 func (s Server) AddUpdateOperation(ctx echo.Context) error {
