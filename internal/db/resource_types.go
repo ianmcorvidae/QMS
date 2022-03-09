@@ -13,8 +13,8 @@ func GetResourceTypeByName(db *gorm.DB, name string) (*model.ResourceType, error
 	wrapMsg := fmt.Sprintf("unable to look up resource type '%s'", name)
 	var err error
 
-	resourceType := model.ResourceType{Name: name}
-	err = db.First(&resourceType).Error
+	var resourceType model.ResourceType
+	err = db.Where(&model.ResourceType{Name: name}).First(&resourceType).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	} else if err != nil {
