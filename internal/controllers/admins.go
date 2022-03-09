@@ -16,15 +16,6 @@ type UpdateQuotaReq struct {
 	Value float64 `json:"value"`
 }
 
-type PlanDetails struct {
-	UserName string
-	UserId   *string
-	Name     string
-	Usage    string
-	Quota    float64
-	Unit     string
-}
-
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	var err error
 	username := ctx.Param("username")
