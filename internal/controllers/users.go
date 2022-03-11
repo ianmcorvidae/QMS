@@ -190,7 +190,6 @@ func (s Server) AddUsages(ctx echo.Context) error {
 	if usage.UpdateType == "" {
 		return model.Error(ctx, "missing usage update type value", http.StatusBadRequest)
 	}
-
 	err = s.GORMDB.Transaction(func(tx *gorm.DB) error {
 		// Look up the currently active user plan, adding a default plan if one doesn't exist already.
 		userPlan, err := db.GetActiveUserPlan(tx, usage.Username)

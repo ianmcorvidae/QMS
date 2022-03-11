@@ -22,19 +22,24 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	var usageData []model.Usage
-	usage := s.GORMDB.Debug().
-		Joins("JOIN user_plans ON user_plans.id = usages.user_plan_id").
-		Joins("JOIN resource_types ON resource_types.id = usages.resource_type_id").
-		Joins("JOIN users ON users.id = user_plans.user_id").
-		Where("cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date")
-	if username != "" {
-		usage.Where("users.username = ?", username)
+	var user model.User
+	err = s.GORMDB.Where("username=?", username).Find(&user).Error
+	if err != nil {
+		return model.Error(ctx, "user not found", http.StatusInternalServerError)
 	}
-	if err = usage.Find(&usageData).Error; err != nil {
+	var userPlan []model.UserPlan
+	err = s.GORMDB.
+		Preload("User").
+		Preload("Plan").
+		Preload("Usages").
+		Preload("Usages.ResourceType").
+		Where("user_id=?", user.ID).
+		Find(&userPlan).Error
+
+	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, usageData, http.StatusOK)
+	return model.Success(ctx, userPlan, http.StatusOK)
 }
 
 func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
