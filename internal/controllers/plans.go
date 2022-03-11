@@ -7,8 +7,10 @@ import (
 
 	"github.com/cyverse-de/echo-middleware/v2/params"
 	"github.com/cyverse/QMS/internal/db"
+	"github.com/cyverse/QMS/internal/httpmodel"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // extractPlanID extracts and validates the plan ID path parameter.
@@ -73,35 +75,26 @@ func (s Server) GetPlanByID(ctx echo.Context) error {
 	return model.Success(ctx, plan, http.StatusOK)
 }
 
-type Plan struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-type PlanDetail struct {
-	PlanName    string `json:"plan_name"`
-	Description string `json:"description"`
-}
-
+// AddPlan adds a new plan to the database.
+//
+// swagger:route POST /v1/plans
 func (s Server) AddPlan(ctx echo.Context) error {
-	var (
-		err  error
-		plan PlanDetail
-	)
+	var err error
+
+	// Parse and validate the request body.
+	var plan httpmodel.NewPlan
 	if err = ctx.Bind(&plan); err != nil {
 		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	if plan.PlanName == "" {
-		return model.Error(ctx, "invalid plan name", http.StatusBadRequest)
+	if err = plan.Validate(); err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	if plan.Description == "" {
-		return model.Error(ctx, "invalid plan description", http.StatusBadRequest)
-	}
-	var req = model.Plan{Name: plan.PlanName, Description: plan.Description}
-	err = s.GORMDB.Debug().Create(&req).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return model.Success(ctx, "Success", http.StatusOK)
+
+	// Begin a transaction.
+	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
 }
 
 func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
