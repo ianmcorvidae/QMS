@@ -27,7 +27,7 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, "user not found", http.StatusInternalServerError)
 	}
-	var userPlan []model.UserPlan
+	var userPlan model.UserPlan
 	err = s.GORMDB.
 		Preload("User").
 		Preload("Plan").
@@ -39,7 +39,7 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, userPlan, http.StatusOK)
+	return model.Success(ctx, userPlan.Usages, http.StatusOK)
 }
 
 func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
