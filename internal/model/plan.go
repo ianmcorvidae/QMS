@@ -61,7 +61,7 @@ type UserPlan struct {
 	EffectiveStartDate *time.Time `gorm:"" json:"effective_start_date"`
 	EffectiveEndDate   *time.Time `gorm:"" json:"effective_end_date"`
 	UserID             *string    `gorm:"type:uuid;not null" json:"-"`
-	User               User       `json:"users"`
+	User               User       `json:"user"`
 	PlanID             *string    `gorm:"type:uuid;not null" json:"-"`
 	Plan               Plan       `json:"plan"`
 	Quotas             []Quota    `json:"quotas"`
