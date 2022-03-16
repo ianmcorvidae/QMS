@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/cyverse-de/echo-middleware/v2/params"
 	"github.com/cyverse/QMS/internal/db"
 	"github.com/cyverse/QMS/internal/httpmodel"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 )
 
 type PlanQuotaDefaultValues struct {
@@ -129,25 +130,35 @@ func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 		return model.Error(ctx, "resource type name can not be empty", http.StatusBadRequest)
 	}
 
-	plan, err := db.GetPlan(s.GORMDB, planQuotaDefaultValues.PlanName)
-	if err != nil {
-		return model.Error(ctx, "PLan", http.StatusBadRequest)
-	}
+	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+		plan, err := db.GetPlan(tx, planQuotaDefaultValues.PlanName)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		if plan == nil {
+			msg := fmt.Sprintf("plan not found: %s", planQuotaDefaultValues.PlanName)
+			return model.Error(ctx, msg, http.StatusBadRequest)
+		}
 
-	resourceType, err := db.GetResourceTypeByName(s.GORMDB, planQuotaDefaultValues.ResourceTypeName)
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusBadRequest)
-	}
+		resourceType, err := db.GetResourceTypeByName(tx, planQuotaDefaultValues.ResourceTypeName)
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		if resourceType == nil {
+			msg := fmt.Sprintf("resource type not found: %s", planQuotaDefaultValues.ResourceTypeName)
+			return model.Error(ctx, msg, http.StatusBadRequest)
+		}
 
-	planQuotaDefault := model.PlanQuotaDefault{}
-	err = s.GORMDB.Model(&planQuotaDefault).
-		Where("plan_id", plan.ID).
-		Where("resource_type_id", resourceType.ID).
-		Update("quota_value", planQuotaDefaultValues.QuotaValue).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return model.Success(ctx, "Success", http.StatusOK)
+		planQuotaDefault := model.PlanQuotaDefault{}
+		err = tx.Model(&planQuotaDefault).
+			Where("plan_id", plan.ID).
+			Where("resource_type_id", resourceType.ID).
+			Update("quota_value", planQuotaDefaultValues.QuotaValue).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		return model.Success(ctx, "Success", http.StatusOK)
+	})
 }
 
 func (s Server) AddQuota(ctx echo.Context) error {
