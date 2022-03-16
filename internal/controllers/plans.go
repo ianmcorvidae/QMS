@@ -2,16 +2,21 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/cyverse-de/echo-middleware/v2/params"
+	"github.com/cyverse/QMS/internal/db"
 	"github.com/cyverse/QMS/internal/httpmodel"
+	"github.com/cyverse/QMS/internal/model"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
-
-	"github.com/cyverse-de/echo-middleware/v2/params"
-	"github.com/cyverse/QMS/internal/db"
-	"github.com/cyverse/QMS/internal/model"
-	"github.com/labstack/echo/v4"
 )
+
+type PlanQuotaDefaultValues struct {
+	PlanName         string  `json:"plan_name"`
+	QuotaValue       float64 `json:"quota_value"`
+	ResourceTypeName string  `json:"resource_type_name"`
+}
 
 // extractPlanID extracts and validates the plan ID path parameter.
 func extractPlanID(ctx echo.Context) (string, error) {
@@ -55,13 +60,11 @@ func (s Server) GetAllPlans(ctx echo.Context) error {
 //   500: internalServerErrorResponse
 func (s Server) GetPlanByID(ctx echo.Context) error {
 	var err error
-
 	// Extract and validate the plan ID.
 	planID, err := extractPlanID(ctx)
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-
 	// Look up the plan.
 	plan, err := db.GetPlanByID(s.GORMDB, planID)
 	if err != nil {
@@ -78,60 +81,6 @@ func (s Server) GetPlanByID(ctx echo.Context) error {
 // AddPlan adds a new plan to the database.
 //
 // swagger:route POST /v1/plans
-//func (s Server) AddPlan(ctx echo.Context) error {
-//	var err error
-//	// Parse and validate the request body.
-//	var plan httpmodel.NewPlan
-//	if err = ctx.Bind(&plan); err != nil {
-//		return model.Error(ctx, err.Error(), http.StatusBadRequest)
-//	}
-//	if err = plan.Validate(); err != nil {
-//		return model.Error(ctx, err.Error(), http.StatusBadRequest)
-//	}
-//
-//	// Begin a transaction.
-//	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
-//		dbPlan := plan.ToDBModel()
-//		for _, quotaDefault := range dbPlan.PlanQuotaDefaults {
-//			if quotaDefault.ResourceType.Name == "" {
-//				return model.Error(ctx, "resource type name required for quota value", http.StatusBadRequest)
-//			}
-//
-//			resourceType, err := db.GetResourceTypeByName(tx, quotaDefault.ResourceType.Name)
-//			if err != nil {
-//				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-//			}
-//			if resourceType.ID == nil {
-//				return model.Error(ctx, "resource type not found: "+resourceType.Name, http.StatusBadRequest)
-//			}
-//			quotaDefault.ResourceType = *resourceType
-//			quotaDefault.ResourceTypeID = quotaDefault.ResourceType.ID
-//
-//			//fmt.Println("===rt", quot)
-//			fmt.Println("=================>qrt", *quotaDefault.ResourceTypeID)
-//			//quotaDefault.ResourceType.ID = resourceType.ID
-//
-//		}
-//		fmt.Printf("%+v", dbPlan)
-//		err = tx.Debug().Omit("Plan.PlanQuotaDefaults.ResourceType").Create(&dbPlan).Error
-//		if err != nil {
-//			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-//		}
-//		//planQuotaDefault := []model.PlanQuotaDefault{}
-//		//
-//		//for _, planQuotaDefaultValue := range planQuotaDefault {
-//		//	planQuotaDefaultValue.PlanID = dbPlan.ID
-//		//}
-//		//planQuotaDefault = dbPlan.PlanQuotaDefaults
-//		//err = tx.Debug().Create(planQuotaDefault).Error
-//		//if err != nil {
-//		//	return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-//		//}
-//
-//		return nil
-//	})
-//}
-
 func (s Server) AddPlan(ctx echo.Context) error {
 	var err error
 	// Parse and validate the request body.
@@ -167,38 +116,34 @@ func (s Server) AddPlan(ctx echo.Context) error {
 }
 
 func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
-	planName := "Basic"
-	resourceName1 := "CPU"
-	cpuValue := 4.00
-	resourceName2 := "STORAGE"
-	storageValue := 1000.00
-	var plan = model.Plan{Name: planName}
-	err := s.GORMDB.Debug().Find(&plan, "name=?", planName).Error
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("plan name not found", http.StatusInternalServerError))
+	var err error
+	// Parse and validate the request body.
+	var planQuotaDefaultValues PlanQuotaDefaultValues
+	if err = ctx.Bind(&planQuotaDefaultValues); err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-	planId := *plan.ID
-	var cpu = model.ResourceType{Name: resourceName1}
-	err = s.GORMDB.Debug().Find(&cpu, "name=?", resourceName1).Error
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError,
-			model.ErrorResponse("resource Type not found: "+resourceName1, http.StatusInternalServerError))
+	if planQuotaDefaultValues.PlanName == "" {
+		return model.Error(ctx, "plan name can not be empty", http.StatusBadRequest)
 	}
-	cpuId := *cpu.ID
-	var req = model.PlanQuotaDefault{PlanID: &planId, ResourceTypeID: &cpuId, QuotaValue: cpuValue}
-	err = s.GORMDB.Debug().Create(&req).Error
-	if err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+	if planQuotaDefaultValues.ResourceTypeName == "" {
+		return model.Error(ctx, "resource type name can not be empty", http.StatusBadRequest)
 	}
-	var storage = model.ResourceType{Name: resourceName2}
-	err = s.GORMDB.Debug().Find(&storage, "name=?", resourceName2).Error
+
+	plan, err := db.GetPlan(s.GORMDB, planQuotaDefaultValues.PlanName)
 	if err != nil {
-		return model.Error(ctx, "resource Type not found: "+resourceName2, http.StatusInternalServerError)
+		return model.Error(ctx, "PLan", http.StatusBadRequest)
 	}
-	storageId := *storage.ID
-	var req2 = model.PlanQuotaDefault{PlanID: &planId, ResourceTypeID: &storageId, QuotaValue: storageValue}
-	err = s.GORMDB.Debug().Create(&req2).Error
+
+	resourceType, err := db.GetResourceTypeByName(s.GORMDB, planQuotaDefaultValues.ResourceTypeName)
+	if err != nil {
+		return model.Error(ctx, err.Error(), http.StatusBadRequest)
+	}
+
+	planQuotaDefault := model.PlanQuotaDefault{}
+	err = s.GORMDB.Model(&planQuotaDefault).
+		Where("plan_id", plan.ID).
+		Where("resource_type_id", resourceType.ID).
+		Update("quota_value", planQuotaDefaultValues.QuotaValue).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
