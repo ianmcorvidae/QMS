@@ -115,7 +115,7 @@ func (s Server) AddPlan(ctx echo.Context) error {
 	})
 }
 
-func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
+func (s Server) UpdatePlanQuotaDefault(ctx echo.Context) error {
 	var err error
 	// Parse and validate the request body.
 	var planQuotaDefaultValues PlanQuotaDefaultValues
