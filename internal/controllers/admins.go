@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
@@ -33,7 +34,7 @@ func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 }
 
 func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
-	var userPlan []model.UserPlan
+	var userPlans []model.UserPlan
 	err := s.GORMDB.
 		Preload("User").
 		Preload("Plan").
@@ -46,11 +47,11 @@ func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
 		Where(
 			s.GORMDB.Where("CURRENT_TIMESTAMP BETWEEN user_plans.effective_start_date AND user_plans.effective_end_date").
 				Or("CURRENT_TIMESTAMP > user_plans.effective_start_date AND user_plans.effective_end_date IS NULL")).
-		Find(&userPlan).Error
+		Find(&userPlans).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, userPlan, http.StatusOK)
+	return model.Success(ctx, userPlans, http.StatusOK)
 }
 
 func (s Server) AddUpdateOperation(ctx echo.Context) error {
