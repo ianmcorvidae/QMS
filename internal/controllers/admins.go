@@ -7,63 +7,51 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const (
-	UpdateTypeSet = "SET"
-	UpdateTypeAdd = "ADD"
-)
-
-type UpdateQuotaReq struct {
-	Type  string  `json:"type"`
-	Value float64 `json:"value"`
-}
-
-type PlanDetails struct {
-	UserName string
-	UserId   *string
-	Name     string
-	Usage    string
-	Quota    float64
-	Unit     string
-}
-
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	var err error
 	username := ctx.Param("username")
 	if username == "" {
 		return model.Error(ctx, "invalid username", http.StatusBadRequest)
 	}
-	var usageData []model.Usage
-	usage := s.GORMDB.Debug().
-		Joins("JOIN user_plans ON user_plans.id = usages.user_plan_id").
-		Joins("JOIN resource_types ON resource_types.id = usages.resource_type_id").
-		Joins("JOIN users ON users.id = user_plans.user_id").
-		Where("cast(now() as date) between user_plans.effective_start_date and user_plans.effective_end_date")
-	if username != "" {
-		usage.Where("users.username = ?", username)
+	var user model.User
+	err = s.GORMDB.Where("username=?", username).Find(&user).Error
+	if err != nil {
+		return model.Error(ctx, "user not found", http.StatusInternalServerError)
 	}
-	if err = usage.Find(&usageData).Error; err != nil {
-		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
-	}
-	return model.Success(ctx, usageData, http.StatusOK)
-}
+	var userPlan model.UserPlan
+	err = s.GORMDB.
+		Preload("User").
+		Preload("Plan").
+		Preload("Usages").
+		Preload("Usages.ResourceType").
+		Where("user_id=?", user.ID).
+		Find(&userPlan).Error
 
-func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
-	var planData []PlanDetails
-	err := s.GORMDB.
-		Table("user_plans").
-		Joins("join plans ON plans.id=user_plans.plan_id").
-		Joins("join usages ON user_plans.id=usages.user_plan_id").
-		Joins("join quotas ON user_plans.id=usages.user_plan_id").
-		Joins("join resource_types ON resource_types.id=usages.resource_type_id").
-		Joins("join users ON users.id=user_plans.user_id").
-		Where("user_plans.effective_start_date<=cast(now() as date)").
-		Where("user_plans.effective_end_date>=cast(now() as date)").
-		Where("usages.resource_type_id=quotas.resource_type_id").
-		Scan(&planData).Error
 	if err != nil {
 		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 	}
-	return model.Success(ctx, planData, http.StatusOK)
+	return model.Success(ctx, userPlan.Usages, http.StatusOK)
+}
+
+func (s Server) GetAllActiveUserPlans(ctx echo.Context) error {
+	var userPlans []model.UserPlan
+	err := s.GORMDB.
+		Preload("User").
+		Preload("Plan").
+		Preload("Plan.PlanQuotaDefaults").
+		Preload("Plan.PlanQuotaDefaults.ResourceType").
+		Preload("Quotas").
+		Preload("Quotas.ResourceType").
+		Preload("Usages").
+		Preload("Usages.ResourceType").
+		Where(
+			s.GORMDB.Where("CURRENT_TIMESTAMP BETWEEN user_plans.effective_start_date AND user_plans.effective_end_date").
+				Or("CURRENT_TIMESTAMP > user_plans.effective_start_date AND user_plans.effective_end_date IS NULL")).
+		Find(&userPlans).Error
+	if err != nil {
+		return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+	}
+	return model.Success(ctx, userPlans, http.StatusOK)
 }
 
 func (s Server) AddUpdateOperation(ctx echo.Context) error {

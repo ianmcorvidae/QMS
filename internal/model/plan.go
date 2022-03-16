@@ -44,7 +44,7 @@ type PlanQuotaDefault struct {
 	// The default quota value
 	//
 	// required: true
-	QuotaValue float64 `gorm:"not null"`
+	QuotaValue float64 `gorm:"not null" json:"quota_value"`
 
 	// The resource type ID
 	ResourceTypeID *string `gorm:"type:uuid;not null" json:"-"`
