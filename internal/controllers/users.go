@@ -13,6 +13,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	UpdateTypeSet = "SET"
+	UpdateTypeAdd = "ADD"
+)
+
 // swagger:route GET /admin/users admin listUsers
 //
 // List Users

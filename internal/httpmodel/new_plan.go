@@ -9,7 +9,7 @@ import (
 // Note: the names in the comments may deviate a bit from the actual structure names in order to avoid producing
 // confusing Swagger docs.
 
-// Plan
+// NewPlan
 //
 // swagger:model
 type NewPlan struct {
@@ -28,7 +28,7 @@ type NewPlan struct {
 	PlanQuotaDefaults []NewPlanQuotaDefault `json:"plan_quota_defaults"`
 }
 
-// Validate verifies that all of the required fields in a new plan are present.
+// Validate verifies that all the required fields in a new plan are present.
 func (p NewPlan) Validate() error {
 	var err error
 
@@ -67,7 +67,7 @@ func (p NewPlan) ToDBModel() model.Plan {
 	}
 }
 
-// PlanQuotaDefault
+// NewPlanQuotaDefault
 //
 // swagger:model
 type NewPlanQuotaDefault struct {
@@ -89,7 +89,7 @@ type NewPlanQuotaDefault struct {
 	ResourceType NewPlanResourceType `json:"resource_type"`
 }
 
-// Validate verifies that all of the required fields in a quota default are present.
+// Validate verifies that all the required fields in a quota default are present.
 func (d NewPlanQuotaDefault) Validate() error {
 
 	// The default quota value is required.
@@ -108,7 +108,7 @@ func (d NewPlanQuotaDefault) ToDBModel() model.PlanQuotaDefault {
 	}
 }
 
-// ResourceType
+// NewPlanResourceType
 //
 // swagger:model
 type NewPlanResourceType struct {
@@ -119,7 +119,7 @@ type NewPlanResourceType struct {
 	Name string `json:"name"`
 }
 
-// Validate verifies that all of the required fields in a resource type are present.
+// Validate verifies that all the required fields in a resource type are present.
 func (rt NewPlanResourceType) Validate() error {
 
 	// The resource type name is required.

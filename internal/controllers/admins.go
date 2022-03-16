@@ -6,16 +6,6 @@ import (
 	"net/http"
 )
 
-const (
-	UpdateTypeSet = "SET"
-	UpdateTypeAdd = "ADD"
-)
-
-type UpdateQuotaReq struct {
-	Type  string  `json:"type"`
-	Value float64 `json:"value"`
-}
-
 func (s Server) GetAllUsageOfUser(ctx echo.Context) error {
 	var err error
 	username := ctx.Param("username")

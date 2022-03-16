@@ -2,15 +2,15 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/cyverse/QMS/internal/httpmodel"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 
 	"github.com/cyverse-de/echo-middleware/v2/params"
 	"github.com/cyverse/QMS/internal/db"
-	"github.com/cyverse/QMS/internal/httpmodel"
 	"github.com/cyverse/QMS/internal/model"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 // extractPlanID extracts and validates the plan ID path parameter.
@@ -78,9 +78,62 @@ func (s Server) GetPlanByID(ctx echo.Context) error {
 // AddPlan adds a new plan to the database.
 //
 // swagger:route POST /v1/plans
+//func (s Server) AddPlan(ctx echo.Context) error {
+//	var err error
+//	// Parse and validate the request body.
+//	var plan httpmodel.NewPlan
+//	if err = ctx.Bind(&plan); err != nil {
+//		return model.Error(ctx, err.Error(), http.StatusBadRequest)
+//	}
+//	if err = plan.Validate(); err != nil {
+//		return model.Error(ctx, err.Error(), http.StatusBadRequest)
+//	}
+//
+//	// Begin a transaction.
+//	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
+//		dbPlan := plan.ToDBModel()
+//		for _, quotaDefault := range dbPlan.PlanQuotaDefaults {
+//			if quotaDefault.ResourceType.Name == "" {
+//				return model.Error(ctx, "resource type name required for quota value", http.StatusBadRequest)
+//			}
+//
+//			resourceType, err := db.GetResourceTypeByName(tx, quotaDefault.ResourceType.Name)
+//			if err != nil {
+//				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+//			}
+//			if resourceType.ID == nil {
+//				return model.Error(ctx, "resource type not found: "+resourceType.Name, http.StatusBadRequest)
+//			}
+//			quotaDefault.ResourceType = *resourceType
+//			quotaDefault.ResourceTypeID = quotaDefault.ResourceType.ID
+//
+//			//fmt.Println("===rt", quot)
+//			fmt.Println("=================>qrt", *quotaDefault.ResourceTypeID)
+//			//quotaDefault.ResourceType.ID = resourceType.ID
+//
+//		}
+//		fmt.Printf("%+v", dbPlan)
+//		err = tx.Debug().Omit("Plan.PlanQuotaDefaults.ResourceType").Create(&dbPlan).Error
+//		if err != nil {
+//			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+//		}
+//		//planQuotaDefault := []model.PlanQuotaDefault{}
+//		//
+//		//for _, planQuotaDefaultValue := range planQuotaDefault {
+//		//	planQuotaDefaultValue.PlanID = dbPlan.ID
+//		//}
+//		//planQuotaDefault = dbPlan.PlanQuotaDefaults
+//		//err = tx.Debug().Create(planQuotaDefault).Error
+//		//if err != nil {
+//		//	return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+//		//}
+//
+//		return nil
+//	})
+//}
+
 func (s Server) AddPlan(ctx echo.Context) error {
 	var err error
-
 	// Parse and validate the request body.
 	var plan httpmodel.NewPlan
 	if err = ctx.Bind(&plan); err != nil {
@@ -89,11 +142,27 @@ func (s Server) AddPlan(ctx echo.Context) error {
 	if err = plan.Validate(); err != nil {
 		return model.Error(ctx, err.Error(), http.StatusBadRequest)
 	}
-
 	// Begin a transaction.
 	return s.GORMDB.Transaction(func(tx *gorm.DB) error {
-
-		return nil
+		dbPlan := plan.ToDBModel()
+		// Look up each resource type and update it in the struct.
+		for i, planQuotaDefault := range dbPlan.PlanQuotaDefaults {
+			resourceType, err := db.GetResourceTypeByName(tx, planQuotaDefault.ResourceType.Name)
+			if err != nil {
+				return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+			}
+			if resourceType == nil {
+				msg := fmt.Sprintf("resource type not found: %s", resourceType.Name)
+				return model.Error(ctx, msg, http.StatusBadRequest)
+			}
+			dbPlan.PlanQuotaDefaults[i].ResourceType = *resourceType
+		}
+		// Add the plan to the database.
+		err := tx.Create(&dbPlan).Error
+		if err != nil {
+			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
+		}
+		return model.SuccessMessage(ctx, "Success", http.StatusOK)
 	})
 }
 
