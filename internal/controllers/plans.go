@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
 
@@ -148,12 +149,26 @@ func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 			msg := fmt.Sprintf("resource type not found: %s", planQuotaDefaultValues.ResourceTypeName)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
+		planQuotaDefault := model.PlanQuotaDefault{
+			PlanID:         plan.ID,
+			ResourceTypeID: resourceType.ID,
+			QuotaValue:     planQuotaDefaultValues.QuotaValue,
+		}
+		//updates quota value if quota value exists for a plan and resource type or else creates a defaults quota value for the plan and resource type.
+		err = tx.Debug().
+			Clauses(clause.OnConflict{
+				Columns: []clause.Column{
+					{
+						Name: "plan_id",
+					},
+					{
+						Name: "resource_type_id",
+					},
+				},
+				DoUpdates: clause.AssignmentColumns([]string{"quota_value"}),
+			}).
+			Create(&planQuotaDefault).Error
 
-		planQuotaDefault := model.PlanQuotaDefault{}
-		err = tx.Model(&planQuotaDefault).
-			Where("plan_id", plan.ID).
-			Where("resource_type_id", resourceType.ID).
-			Update("quota_value", planQuotaDefaultValues.QuotaValue).Error
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
