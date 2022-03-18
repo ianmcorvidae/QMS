@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
 
@@ -148,12 +149,53 @@ func (s Server) UpdatePlanQuotaDefault(ctx echo.Context) error {
 			msg := fmt.Sprintf("resource type not found: %s", planQuotaDefaultValues.ResourceTypeName)
 			return model.Error(ctx, msg, http.StatusBadRequest)
 		}
+		planQuotaDefault := model.PlanQuotaDefault{
+			PlanID:         plan.ID,
+			ResourceTypeID: resourceType.ID,
+			QuotaValue:     planQuotaDefaultValues.QuotaValue,
+		}
+		err = tx.Debug().
+			Clauses(clause.OnConflict{
+				Columns: []clause.Column{
+					{
+						Name: "plan_id",
+					},
+					{
+						Name: "resource_type_id",
+					},
+				},
+				DoUpdates: clause.AssignmentColumns([]string{"quota_value"}),
+			}).
+			//	UpdateAll: true,
+			//}).
+			Create(&planQuotaDefault).Error
 
-		planQuotaDefault := model.PlanQuotaDefault{}
-		err = tx.Model(&planQuotaDefault).
-			Where("plan_id", plan.ID).
-			Where("resource_type_id", resourceType.ID).
-			Update("quota_value", planQuotaDefaultValues.QuotaValue).Error
+		//planQuotaDefault := model.PlanQuotaDefault{}
+		//if err = s.GORMDB.Model(&planQuotaDefault).
+		//	Where("plan_id", plan.ID).
+		//	Where("resource_type_id", resourceType.ID).
+		//	Update("quota_value", planQuotaDefaultValues.QuotaValue).Error; err != nil {
+		//	if err == gorm.ErrRecordNotFound {
+		//		planQuotaDefault = model.PlanQuotaDefault{
+		//			PlanID:         plan.ID,
+		//			ResourceTypeID: resourceType.ID,
+		//			QuotaValue:     planQuotaDefaultValues.QuotaValue,
+		//		}
+		//		err = tx.Debug().Create(&planQuotaDefault).Error
+		//	}
+		//}
+
+		//err = tx.Model(&planQuotaDefault).
+		//	Where("plan_id = ?", plan.ID).
+		//	Where("resource_type_id=?", resourceType.ID).
+		//	Update("quota_value=?", planQuotaDefaultValues.QuotaValue).Error
+		//err != nil {
+		//	// always handle error like this, cause errors maybe happened when connection failed or something.
+		//	// record not found...
+		//	//if err == gorm.ErrRecordNotFound {
+		//	//	tx.Create(&planQuotaDefault) // create new record from newUser
+		//	//}
+		//}
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
