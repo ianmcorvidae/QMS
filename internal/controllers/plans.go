@@ -117,7 +117,7 @@ func (s Server) AddPlan(ctx echo.Context) error {
 	})
 }
 
-func (s Server) UpdatePlanQuotaDefault(ctx echo.Context) error {
+func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 	var err error
 	// Parse and validate the request body.
 	var planQuotaDefaultValues PlanQuotaDefaultValues
@@ -154,6 +154,7 @@ func (s Server) UpdatePlanQuotaDefault(ctx echo.Context) error {
 			ResourceTypeID: resourceType.ID,
 			QuotaValue:     planQuotaDefaultValues.QuotaValue,
 		}
+		//updates quota value if quota value exists for a plan and resource type or else creates a defaults quota value for the plan and resource type.
 		err = tx.Debug().
 			Clauses(clause.OnConflict{
 				Columns: []clause.Column{
@@ -166,36 +167,8 @@ func (s Server) UpdatePlanQuotaDefault(ctx echo.Context) error {
 				},
 				DoUpdates: clause.AssignmentColumns([]string{"quota_value"}),
 			}).
-			//	UpdateAll: true,
-			//}).
 			Create(&planQuotaDefault).Error
 
-		//planQuotaDefault := model.PlanQuotaDefault{}
-		//if err = s.GORMDB.Model(&planQuotaDefault).
-		//	Where("plan_id", plan.ID).
-		//	Where("resource_type_id", resourceType.ID).
-		//	Update("quota_value", planQuotaDefaultValues.QuotaValue).Error; err != nil {
-		//	if err == gorm.ErrRecordNotFound {
-		//		planQuotaDefault = model.PlanQuotaDefault{
-		//			PlanID:         plan.ID,
-		//			ResourceTypeID: resourceType.ID,
-		//			QuotaValue:     planQuotaDefaultValues.QuotaValue,
-		//		}
-		//		err = tx.Debug().Create(&planQuotaDefault).Error
-		//	}
-		//}
-
-		//err = tx.Model(&planQuotaDefault).
-		//	Where("plan_id = ?", plan.ID).
-		//	Where("resource_type_id=?", resourceType.ID).
-		//	Update("quota_value=?", planQuotaDefaultValues.QuotaValue).Error
-		//err != nil {
-		//	// always handle error like this, cause errors maybe happened when connection failed or something.
-		//	// record not found...
-		//	//if err == gorm.ErrRecordNotFound {
-		//	//	tx.Create(&planQuotaDefault) // create new record from newUser
-		//	//}
-		//}
 		if err != nil {
 			return model.Error(ctx, err.Error(), http.StatusInternalServerError)
 		}
