@@ -96,7 +96,7 @@ func (s Server) GetPlanByID(ctx echo.Context) error {
 // Adds the plan to the Plans Database.
 //
 // Responses:
-//	 200: planResponse
+//	 200: successMessageResponse
 //   400: badRequestResponse
 // 	 409: conflictResponse
 //   500: internalServerErrorResponse
@@ -215,7 +215,7 @@ func (s Server) AddPlanQuotaDefault(ctx echo.Context) error {
 // Add resource quota values of a user.
 //
 // responses:
-//   200: quotaResponse
+//   200: successMessageResponse
 //   400: badRequestResponse
 // 	 409: conflictResponse
 //   500: internalServerErrorResponse
